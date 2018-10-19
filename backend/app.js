@@ -46,34 +46,35 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/api/connex",connexRoutes);
-app.use("/api/fund",fundRoutes);
 app.use("/api/user",userRoutes);
 
-app.use("/api/amc",amcRoutes);
-app.use("/api/trans",transRoutes);
-app.use("/api/customer",customerRoutes);
+// app.use("/api/connex",connexRoutes);
+// app.use("/api/fund",fundRoutes);
+// app.use("/api/amc",amcRoutes);
+// app.use("/api/trans",transRoutes);
+// app.use("/api/customer",customerRoutes);
 
-// ***** Master data
-app.use("/api/clientType",clientTypeRoutes);
-app.use("/api/PIDType",PIDTypesRoutes);
-app.use("/api/thaiTitle",thaiTitleRoutes);
-app.use("/api/engTitle",engTitleRoutes);
-app.use("/api/country",countryRoutes);
-app.use("/api/province",provinceRoutes);
-app.use("/api/amphur",amphurRoutes);
-app.use("/api/tambon",tambonRoutes);
-app.use("/api/nation",nationRoutes);
+// // ***** Master data
+// app.use("/api/clientType",clientTypeRoutes);
+// app.use("/api/PIDType",PIDTypesRoutes);
+// app.use("/api/thaiTitle",thaiTitleRoutes);
+// app.use("/api/engTitle",engTitleRoutes);
+// app.use("/api/country",countryRoutes);
+// app.use("/api/province",provinceRoutes);
+// app.use("/api/amphur",amphurRoutes);
+// app.use("/api/tambon",tambonRoutes);
+// app.use("/api/nation",nationRoutes);
 
-app.use("/api/saleAgent",saleAgentRoutes);
-app.use("/api/wipcustomer",wipCustomerRoutes);
-app.use("/api/custAddress",custAddressRoutes);
-app.use("/api/workFlow",workFlowRoutes);
-app.use("/api/mail",mailRoutes);
+// app.use("/api/saleAgent",saleAgentRoutes);
+// app.use("/api/wipcustomer",wipCustomerRoutes);
+// app.use("/api/custAddress",custAddressRoutes);
+// app.use("/api/workFlow",workFlowRoutes);
+// app.use("/api/mail",mailRoutes);
 
-app.use("/api/util",utilityRoutes);
+// app.use("/api/util",utilityRoutes);
 
 app.use((req, res, next) => {
   res.sendFile(path.join(__dirname, "angular", "index.html"));
 });
+
 module.exports = app;

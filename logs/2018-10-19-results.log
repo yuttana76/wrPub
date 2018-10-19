@@ -574,3 +574,5 @@
 2018-10-19 15:16:45 info: API /UserLevel - /api/user//userLevel?userId=yuttana76@gmail.com&appId=App1 - ::1 - ;USERID=yuttana76@gmail.com  ;APPID=App1
 2018-10-19 15:16:45 info: API /check-auth - /api/user//userLevel?userId=yuttana76@gmail.com&appId=App1 - ::1 
 2018-10-19 15:16:45 info: API /UserLevel - /api/user//userLevel?userId=yuttana76@gmail.com&appId=App1 - ::1 - ;USERID=yuttana76@gmail.com  ;APPID=App1
+2018-10-19 17:20:08 info: API /Login - /api/user/login - ::1 - yuttana76@gmail.com
+2018-10-19 17:20:41 info: API /Login - /api/user/login - ::1 - bom@gmail.com
