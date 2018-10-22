@@ -142,17 +142,32 @@ sql.connect(config).then(pool => {
      }
 
      //Generate token
-     const token = jwt.sign(
-       {USERID: fetchedUser.recordset[0].USERID},
-       TOKEN_SECRET_STRING,
-       { expiresIn: TOKEN_EXPIRES},
-     );
-     //Return
-     res.status(200).json({
+    //  const token = jwt.sign(
+    //    {USERID: fetchedUser.recordset[0].USERID},
+    //    TOKEN_SECRET_STRING,
+    //    { expiresIn: TOKEN_EXPIRES},
+    //  );
+
+     // No expire
+    const token = jwt.sign(
+      {USERID: fetchedUser.recordset[0].USERID},
+      TOKEN_SECRET_STRING,
+      {}
+    );
+
+    //  //Return
+    //  res.status(200).json({
+    //    token: token,
+    //    expiresIn: 3600,//3600 = 1h
+    //    userData: fetchedUser.recordset[0].USERID,
+    //  });
+
+      res.status(200).json({
        token: token,
-       expiresIn: 3600,//3600 = 1h
+       expiresIn: 31622400,//3600 = 1h
        userData: fetchedUser.recordset[0].USERID,
      });
+
      sql.close();
    })
    .catch(err => {

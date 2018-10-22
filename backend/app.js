@@ -1,33 +1,40 @@
+var compression = require('compression')
+var helmet = require('helmet');
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require("path");
 
-const connexRoutes = require('./routes/connex');
-const fundRoutes = require('./routes/fund');
 const userRoutes = require('./routes/user');
+const wrRoutes = require('./routes/wr');
 
-const utilityRoutes = require('./routes/utility');
+// const connexRoutes = require('./routes/connex');
+// const fundRoutes = require('./routes/fund');
 
-const amcRoutes = require('./routes/amc');
-const transRoutes = require('./routes/transaction');
-const customerRoutes = require('./routes/customer');
 
-const clientTypeRoutes = require('./routes/clientType');
-const PIDTypesRoutes = require('./routes/PIDTypes');
-const thaiTitleRoutes = require('./routes/thaiTitle');
-const engTitleRoutes = require('./routes/engTitle');
-const nationRoutes = require('./routes/nation');
-const countryRoutes = require('./routes/country');
-const provinceRoutes = require('./routes/province');
-const amphurRoutes = require('./routes/amphur');
-const tambonRoutes = require('./routes/tambon');
-const saleAgentRoutes = require('./routes/saleAgent');
-const wipCustomerRoutes = require('./routes/wipCustomer');
-const custAddressRoutes = require('./routes/custAddress');
-const workFlowRoutes = require('./routes/workFlow');
-const mailRoutes = require('./routes/mail');
+
+// const utilityRoutes = require('./routes/utility');
+
+// const amcRoutes = require('./routes/amc');
+// const transRoutes = require('./routes/transaction');
+// const customerRoutes = require('./routes/customer');
+
+// const clientTypeRoutes = require('./routes/clientType');
+// const PIDTypesRoutes = require('./routes/PIDTypes');
+// const thaiTitleRoutes = require('./routes/thaiTitle');
+// const engTitleRoutes = require('./routes/engTitle');
+// const nationRoutes = require('./routes/nation');
+// const countryRoutes = require('./routes/country');
+// const provinceRoutes = require('./routes/province');
+// const amphurRoutes = require('./routes/amphur');
+// const tambonRoutes = require('./routes/tambon');
+// const saleAgentRoutes = require('./routes/saleAgent');
+// const wipCustomerRoutes = require('./routes/wipCustomer');
+// const custAddressRoutes = require('./routes/custAddress');
+// const workFlowRoutes = require('./routes/workFlow');
+// const mailRoutes = require('./routes/mail');
 const app = express();
-
+app.use(helmet());
+app.use(compression())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use("/", express.static(path.join(__dirname, "angular")));
@@ -47,7 +54,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/api/user",userRoutes);
-
+app.use("/api/wr",wrRoutes);
 // app.use("/api/connex",connexRoutes);
 // app.use("/api/fund",fundRoutes);
 // app.use("/api/amc",amcRoutes);

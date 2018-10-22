@@ -9,6 +9,7 @@ import { P500Component } from './views/error/500.component';
 import { LoginComponent } from './views/login/login.component';
 import { RegisterComponent } from './views/register/register.component';
 import { AuthGuard } from './views/services/auth/auth.guard';
+import { WrComponent } from './views/wr/wr.component';
 
 export const routes: Routes = [
   {
@@ -45,6 +46,15 @@ export const routes: Routes = [
       title: 'Register Page'
     }
   },
+
+  {
+    path: 'wr',
+    component: WrComponent,
+    data: {
+      title: 'WR. Page'
+    }
+  },
+
   {
     path: '',
     component: DefaultLayoutComponent,

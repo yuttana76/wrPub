@@ -23,6 +23,8 @@ import { P500Component } from './views/error/500.component';
 import { LoginComponent } from './views/login/login.component';
 import { RegisterComponent } from './views/register/register.component';
 
+import { WrComponent } from './views/wr/wr.component';
+
 const APP_CONTAINERS = [
   DefaultLayoutComponent
 ];
@@ -77,6 +79,7 @@ import { AngularMaterialModule } from './angular-material.module';
     LoginComponent,
     RegisterComponent,
     CustomErrorComponent,
+    WrComponent,
   ],
   // providers: [{
   //   provide: LocationStrategy,

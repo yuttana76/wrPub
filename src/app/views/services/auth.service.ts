@@ -59,6 +59,8 @@ export class AuthService {
       .post<{ token: string, expiresIn: number, userData: string }>( BACKEND_URL + 'login', authData)
       .subscribe(response => {
 
+        // console.log('response>> ', JSON.stringify(response));
+
         const token = response.token;
         this.token = token;
         if (token) {
@@ -74,7 +76,7 @@ export class AuthService {
           const expirationDate = new Date(now.getTime() + expiresInDuration * 1000);
           this.saveAuthData(token, expirationDate, this.userData);
 
-          this.router.navigate(['/']);
+          this.router.navigate(['/wr']);
         }
       }, error => {
         this.authStatusListener.next(false);
