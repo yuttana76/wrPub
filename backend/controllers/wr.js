@@ -7,6 +7,13 @@ var config = dbConfig.dbParameters;
 var logger = require('../config/winston');
 
 
+exports.getWrInfo = (req, res, next) => {
+  res.status(200).json({
+    message: "Welcome Wealth API"
+  });
+}
+
+
 exports.getCustomerInfo = (req, res, next) => {
 
     var fncName = 'getCustomerInfo';
@@ -226,7 +233,6 @@ FROM [WR_MFTS].[dbo].[MFTS_Transaction] a
   LEFT JOIN [WR_MFTS].[dbo].[MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
 , [WR_MFTS].[dbo].[MFTS_Account] x
 where a.Ref_No=x.Ref_No
-  --   AND TranType_Code IN ('S','SO')
   AND x.Account_No='${custCode}'
   AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
 order by a.Tran_Date `;
