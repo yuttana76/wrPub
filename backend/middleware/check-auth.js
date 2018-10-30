@@ -1,7 +1,8 @@
 const jwt = require("jsonwebtoken");
 var logger = require('../config/winston');
 
-const TOKEN_SECRET_STRING = 'secret_this_should_be_longer';
+// const TOKEN_SECRET_STRING = 'secret_this_should_be_longer';
+const TOKEN_SECRET_STRING = process.env.JWT_KEY;
 
 module.exports = (req,res,next)=>{
 
@@ -11,6 +12,7 @@ module.exports = (req,res,next)=>{
     const token = req.headers.authorization.split(" ")[1];
 
     jwt.verify(token,TOKEN_SECRET_STRING);
+
     next();
   }catch(error){
     console.log(error);

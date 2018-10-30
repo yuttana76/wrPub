@@ -109,8 +109,13 @@ exports.userLogin = (req, res, next) => {
 
  let queryStr = `select * FROM [MFTS].[dbo].[MIT_USERS]
                 WHERE STATUS = 'A'  AND CURRENT_TIMESTAMP < ISNULL(EXPIRE_DATE,CURRENT_TIMESTAMP+1)
-                AND MIT_GROUP NOT like'C%'
                 AND USERID='${_userName}'`;
+
+  // let queryStr = `select * FROM [MFTS].[dbo].[MIT_USERS]
+  // WHERE STATUS = 'A'  AND CURRENT_TIMESTAMP < ISNULL(EXPIRE_DATE,CURRENT_TIMESTAMP+1)
+  // AND MIT_GROUP NOT like'C%'
+  // AND USERID='${_userName}'`;
+
  const sql = require('mssql')
 
 sql.connect(config).then(pool => {
@@ -142,29 +147,22 @@ sql.connect(config).then(pool => {
      }
 
      //Generate token
-    //  const token = jwt.sign(
-    //    {USERID: fetchedUser.recordset[0].USERID},
-    //    TOKEN_SECRET_STRING,
-    //    { expiresIn: TOKEN_EXPIRES},
-    //  );
+     const token = jwt.sign(
+       {USERID: fetchedUser.recordset[0].USERID},
+       TOKEN_SECRET_STRING,
+       { expiresIn: TOKEN_EXPIRES},
+     );
 
      // No expire
-    const token = jwt.sign(
-      {USERID: fetchedUser.recordset[0].USERID},
-      TOKEN_SECRET_STRING,
-      {}
-    );
-
-    //  //Return
-    //  res.status(200).json({
-    //    token: token,
-    //    expiresIn: 3600,//3600 = 1h
-    //    userData: fetchedUser.recordset[0].USERID,
-    //  });
+    // const token = jwt.sign(
+    //   {USERID: fetchedUser.recordset[0].USERID},
+    //   TOKEN_SECRET_STRING,
+    //   {}
+    // );
 
       res.status(200).json({
        token: token,
-       expiresIn: 31622400,//3600 = 1h
+       expiresIn: TOKEN_EXPIRES,//31622400,//3600 = 1h
        userData: fetchedUser.recordset[0].USERID,
      });
 
@@ -172,6 +170,8 @@ sql.connect(config).then(pool => {
    })
    .catch(err => {
        // NOT FOUND USER
+       logger.info( `API /Login Auth failed by no user - ${_userName} -${err}`);
+
        logger.warn( `API /Login Auth failed by no user - ${req.originalUrl} - ${req.ip} - ${_userName} `);
        sql.close();
        return res.status(401).json({

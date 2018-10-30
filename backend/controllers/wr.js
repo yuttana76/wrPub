@@ -67,12 +67,21 @@ exports.getSummaryByCustID = (req, res, next) => {
 
   logger.info( `API /summaryByCust - ${req.originalUrl} - ${req.ip} -dueDate:${dueDate}`);
 
-  var queryStr = ` SELECT     [CustID]
-      ,[AMCID]
+  var queryStr = `
+  BEGIN
+
+DECLARE @CustID VARCHAR(20) ='${custCode}';
+DECLARE @DataDate date;
+
+SELECT TOP 1  @DataDate = DataDate   FROM [WR_MFTS].[dbo].[IT_CustPortValueEndDay]
+WHERE CustID= @CustID
+  OR CustID= @CustID+'-2'
+  OR CustID= @CustID+'-3'
+  ORDER BY DataDate;
+
+SELECT [CustID]
       ,c.Amc_Code
       ,c.Amc_Name
-      ,[HolderID]
-      ,[FundID]
       ,b.Fund_Code
       ,b.FGroup_Code
       ,[BalanceUnit]
@@ -83,15 +92,19 @@ exports.getSummaryByCustID = (req, res, next) => {
       ,[MarketValue]
       ,[GainLoss]
       ,[ReturnPC]
-      ,[AmtDays]
       ,[Proportion]
+      ,DataDate
   FROM [WR_MFTS].[dbo].[IT_CustPortValueEndDay] a
   LEFT JOIN   [WR_MFTS].[dbo].[MFTS_Fund] b ON a.FundID = b.Fund_Id
   LEFT JOIN  [WR_MFTS].[dbo].[MFTS_Amc] c ON a.AMCID = c.Amc_Id
-
   WHERE  Status ='A'
-  AND CustID='${custCode}'
-  AND DataDate = '${dueDate}' `;
+  AND CustID= @CustID
+  OR CustID= @CustID+'-2'
+  OR CustID= @CustID+'-3'
+  AND DataDate = @DataDate
+
+END
+  `;
 
   const sql = require('mssql')
   const pool1 = new sql.ConnectionPool(config, err => {
@@ -128,19 +141,29 @@ exports.getDividendByCustID = (req, res, next) => {
 
   logger.info( `API /dividend - ${req.originalUrl} - ${req.ip} -fromDate:${fromDate} -toDate:${toDate}`);
 
-  var queryStr = ` SELECT b.Fund_Code
-  ,b.FGroup_Code
-  ,a.XD_Date
-  ,a.DivPerUnit,a.Unit
-  ,a.DivPerUnit * a.Unit AS VAL
-  ,(a.DivPerUnit * a.Unit) - a.Tax_Amount AS NET_VAL
-  FROM [WR_MFTS].[dbo].[MFTS_Dividend] a
-  LEFT JOIN   [WR_MFTS].[dbo].[MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
-  , [WR_MFTS].[dbo].[MFTS_Account] x
-  WHERE a.Ref_No=x.Ref_No
-  AND x.Account_No='${custCode}'
-  AND XD_DATE BETWEEN '${fromDate}' AND '${toDate}'
-  ORDER BY XD_DATE `;
+  var queryStr = `
+    BEGIN
+    DECLARE @CustID VARCHAR(20) = '${custCode}';
+    SELECT x.Account_No
+    ,x.Amc_id
+    ,x.Holder_id
+    ,b.Fund_Code
+    ,b.FGroup_Code
+    ,a.XD_Date
+    ,a.DivPerUnit,a.Unit
+    ,a.DivPerUnit * a.Unit AS VAL
+    ,(a.DivPerUnit * a.Unit) - a.Tax_Amount AS NET_VAL
+    FROM [WR_MFTS].[dbo].[MFTS_Dividend] a
+    LEFT JOIN   [WR_MFTS].[dbo].[MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
+    , [WR_MFTS].[dbo].[MFTS_Account] x
+    WHERE a.Ref_No=x.Ref_No
+    AND x.Account_No= @CustID
+    OR x.Account_No= @CustID+'-2'
+    OR x.Account_No= @CustID+'-3'
+    AND XD_DATE BETWEEN '${fromDate}' AND '${toDate}'
+    ORDER BY x.Account_No,b.Fund_Code, XD_DATE
+    END
+  `;
 
   const sql = require('mssql')
   const pool1 = new sql.ConnectionPool(config, err => {
@@ -176,15 +199,21 @@ exports.getFromSell = (req, res, next) => {
 
   logger.info( `API /onSell - ${req.originalUrl} - ${req.ip} -fromDate:${fromDate} -toDate:${toDate}`);
 
-  var queryStr = ` SELECT a.ExecuteDate
+  var queryStr = `
+  BEGIN
+  DECLARE @CustID VARCHAR(20) = '${custCode}';
+  SELECT a.TranType_Code, a.ExecuteDate
   ,a.Amount_Baht,a.Amount_Unit,a.Nav_Price,a.RGL
       FROM [WR_MFTS].[dbo].[MFTS_Transaction] a
     , [WR_MFTS].[dbo].[MFTS_Account] x
     where a.Ref_No=x.Ref_No
     AND TranType_Code IN ('S','SO')
-    AND x.Account_No='${custCode}'
+    AND x.Account_No= @CustID
+    OR x.Account_No= @CustID+'-2'
+    OR x.Account_No= @CustID+'-3'
     AND ExecuteDate BETWEEN '${fromDate}' AND '${toDate}'
-    order by a.ExecuteDate `;
+    order by a.ExecuteDate ;
+    END`;
 
   const sql = require('mssql')
   const pool1 = new sql.ConnectionPool(config, err => {
@@ -222,20 +251,27 @@ exports.getTransaction = (req, res, next) => {
 
   logger.info( `API /transaction - ${req.originalUrl} - ${req.ip} -fromDate:${fromDate} -toDate:${toDate}`);
 
-  var queryStr = ` SELECT
-  b.Fund_Code
-  , b.FGroup_Code
-  , a.TranType_Code
-  , a.Tran_Date
-  , a.ExecuteDate
-  , a.Amount_Baht, a.Amount_Unit, a.Nav_Price, a.RGL
-FROM [WR_MFTS].[dbo].[MFTS_Transaction] a
-  LEFT JOIN [WR_MFTS].[dbo].[MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
-, [WR_MFTS].[dbo].[MFTS_Account] x
-where a.Ref_No=x.Ref_No
-  AND x.Account_No='${custCode}'
-  AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
-order by a.Tran_Date `;
+  var queryStr = `
+            BEGIN
+            DECLARE @CustID VARCHAR(20) = '${custCode}';
+            SELECT
+            b.Fund_Code
+            , b.FGroup_Code
+            , a.TranType_Code
+            , a.Tran_Date
+            , a.ExecuteDate
+            , a.Amount_Baht, a.Amount_Unit, a.Nav_Price, a.RGL
+            FROM [WR_MFTS].[dbo].[MFTS_Transaction] a
+            LEFT JOIN [WR_MFTS].[dbo].[MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
+          , [WR_MFTS].[dbo].[MFTS_Account] x
+            WHERE a.Ref_No=x.Ref_No
+            AND x.Account_No= @CustID
+              OR x.Account_No= @CustID+'-2'
+              OR x.Account_No= @CustID+'-3'
+            AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
+            ORDER BY a.Tran_Date;
+
+          END `;
 
   const sql = require('mssql')
   const pool1 = new sql.ConnectionPool(config, err => {
