@@ -12,6 +12,97 @@ const SALT_WORK_FACTOR = dbConfig.SALT_WORK_FACTOR;
 
 const TOKEN_SECRET_STRING = dbConfig.TOKEN_SECRET_STRING;
 const TOKEN_EXPIRES = dbConfig.TOKEN_EXPIRES;
+const TOKEN_EXPIRES_SEC = 3600;
+
+exports.userLogin = (req, res, next) => {
+
+  let fetchedUser;
+  let _userName = req.body.email
+  logger.info( `API /Login - ${req.originalUrl} - ${req.ip} - ${_userName}`);
+
+  let queryStr = `SELECT a.*
+                        ,b.Title_Name_E + ' ' + b.First_Name_T + ' ' + b.Last_Name_T FULLNAME
+                 FROM [MIT_USERS] a
+                 LEFT JOiN MIT_Account_Profile b ON a.USERID = b.CUST_CODE
+                 WHERE STATUS = 'A'  AND CURRENT_TIMESTAMP < ISNULL(EXPIRE_DATE,CURRENT_TIMESTAMP+1)
+                 AND LoginName='${_userName}'`;
+
+  const sql = require('mssql')
+
+ sql.connect(config).then(pool => {
+    // Query
+    return pool.request()
+    .query(queryStr)})
+    .then(user => {
+
+      if(!user){
+       logger.error( `API /Login Auth failed. 1 - ${req.originalUrl} - ${req.ip} `);
+       sql.close();
+        return res.status(401).json({
+          message: 'Auth failed. 1'
+        });
+      } else {
+         sql.close();
+         fetchedUser = user;
+         return bcrypt.compare(req.body.password,user.recordset[0].PASSWD);
+      }
+
+    })
+    .then(result =>{
+     // INCORRECT PWD.
+      if(!result){
+        logger.info( `API /Login Auth failed by incorrect password - ${req.originalUrl} - ${req.ip} - ${_userName} `);
+        return res.status(401).json({
+          message: 'Auth failed. by incorrect password'
+        });
+      }
+
+      //Generate token
+      const token = jwt.sign(
+        {USERID: fetchedUser.recordset[0].USERID},
+        TOKEN_SECRET_STRING,
+        { expiresIn: TOKEN_EXPIRES},
+      );
+
+      // No expire
+     // const token = jwt.sign(
+     //   {USERID: fetchedUser.recordset[0].USERID},
+     //   TOKEN_SECRET_STRING,
+     //   {}
+     // );
+
+       res.status(200).json({
+        token: token,
+        expiresIn: TOKEN_EXPIRES_SEC,//3600 = 1h
+        userData: fetchedUser.recordset[0].USERID,
+        LoginName: fetchedUser.recordset[0].LoginName,
+        USERID: fetchedUser.recordset[0].USERID,
+        FULLNAME: fetchedUser.recordset[0].FULLNAME,
+      });
+
+      sql.close();
+    })
+    .catch(err => {
+        // NOT FOUND USER
+        logger.info( `API /Login Auth failed by no user - ${_userName} -${err}`);
+        sql.close();
+        return res.status(401).json({
+          message: 'Auth failed. by user'
+        });
+    })
+
+  sql.on("error", err => {
+   err.message
+    // ... error handler
+    sql.close();
+    logger.error( `API /Login error - ${req.originalUrl} - ${req.ip} - ${err} `);
+    return res.status(401).json({
+      message: 'Auth failed. 4'
+    });
+
+  });
+ }
+
 
 exports.createUser = (req,res,next)=>{
 
@@ -21,8 +112,8 @@ exports.createUser = (req,res,next)=>{
   bcrypt.hash(req.body.password, SALT_WORK_FACTOR)
   .then(hash =>{
 
-      var queryStr = `INSERT INTO   [MFTS].[dbo].[MIT_USERS] (USERID,PASSWD,EMAIL,STATUS,CREATEBY,CREATEDATE)
-                      VALUES('${_userName}','${hash}','${_userName}','A','WEB-APP',GETDATE());`;
+      var queryStr = `INSERT INTO   [MFTS].[dbo].[MIT_USERS] (LoginName,USERID,PASSWD,EMAIL,STATUS,CREATEBY,CREATEDATE)
+                      VALUES('${_userName}','${_userName}','${hash}','${_userName}','A','WEB-APP',GETDATE());`;
 
       var sql = require("mssql");
 
@@ -60,14 +151,14 @@ exports.createUser = (req,res,next)=>{
 
 exports.resetPassword = (req,res,next)=>{
 
-  logger.info( `API /resetPassword - ${req.originalUrl} - ${req.ip} - ${req.body.userid}`);
+  logger.info( `API /resetPassword - ${req.originalUrl} - ${req.ip} - ${req.body.LoginName}`);
 
   bcrypt.hash(req.body.password, SALT_WORK_FACTOR)
   .then(hash =>{
 
-      var queryStr = `UPDATE [MFTS].[dbo].[MIT_USERS]
+      var queryStr = `UPDATE [MIT_USERS]
                       SET PASSWD='${hash}',UPDATEBY='WEB-APP',UPDATEDATE=GETDATE()
-                      WHERE USERID='${req.body.userid}'`;
+                      WHERE LoginName='${req.body.LoginName}'`;
 
       var sql = require("mssql");
 
@@ -99,96 +190,6 @@ exports.resetPassword = (req,res,next)=>{
         });
       });
   });
-}
-
-exports.userLogin = (req, res, next) => {
-
- let fetchedUser;
- let _userName = req.body.email
- logger.info( `API /Login - ${req.originalUrl} - ${req.ip} - ${_userName}`);
-
- let queryStr = `select * FROM [MFTS].[dbo].[MIT_USERS]
-                WHERE STATUS = 'A'  AND CURRENT_TIMESTAMP < ISNULL(EXPIRE_DATE,CURRENT_TIMESTAMP+1)
-                AND USERID='${_userName}'`;
-
-  // let queryStr = `select * FROM [MFTS].[dbo].[MIT_USERS]
-  // WHERE STATUS = 'A'  AND CURRENT_TIMESTAMP < ISNULL(EXPIRE_DATE,CURRENT_TIMESTAMP+1)
-  // AND MIT_GROUP NOT like'C%'
-  // AND USERID='${_userName}'`;
-
- const sql = require('mssql')
-
-sql.connect(config).then(pool => {
-   // Query
-   return pool.request()
-   .query(queryStr)})
-   .then(user => {
-
-     if(!user){
-      logger.error( `API /Login Auth failed. 1 - ${req.originalUrl} - ${req.ip} `);
-      sql.close();
-       return res.status(401).json({
-         message: 'Auth failed. 1'
-       });
-     } else {
-        sql.close();
-        fetchedUser = user;
-        return bcrypt.compare(req.body.password,user.recordset[0].PASSWD);
-     }
-
-   })
-   .then(result =>{
-    // INCORRECT PWD.
-     if(!result){
-       logger.info( `API /Login Auth failed by incorrect password - ${req.originalUrl} - ${req.ip} - ${_userName} `);
-       return res.status(401).json({
-         message: 'Auth failed. by incorrect password'
-       });
-     }
-
-     //Generate token
-     const token = jwt.sign(
-       {USERID: fetchedUser.recordset[0].USERID},
-       TOKEN_SECRET_STRING,
-       { expiresIn: TOKEN_EXPIRES},
-     );
-
-     // No expire
-    // const token = jwt.sign(
-    //   {USERID: fetchedUser.recordset[0].USERID},
-    //   TOKEN_SECRET_STRING,
-    //   {}
-    // );
-
-      res.status(200).json({
-       token: token,
-       expiresIn: TOKEN_EXPIRES,//31622400,//3600 = 1h
-       userData: fetchedUser.recordset[0].USERID,
-     });
-
-     sql.close();
-   })
-   .catch(err => {
-       // NOT FOUND USER
-       logger.info( `API /Login Auth failed by no user - ${_userName} -${err}`);
-
-       logger.warn( `API /Login Auth failed by no user - ${req.originalUrl} - ${req.ip} - ${_userName} `);
-       sql.close();
-       return res.status(401).json({
-         message: 'Auth failed. by user'
-       });
-   })
-
- sql.on("error", err => {
-  err.message
-   // ... error handler
-   sql.close();
-   logger.error( `API /Login error - ${req.originalUrl} - ${req.ip} - ${err} `);
-   return res.status(401).json({
-     message: 'Auth failed. 4'
-   });
-
- });
 }
 
 
