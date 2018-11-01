@@ -1,5 +1,7 @@
 {
   "env": {
+  "NODE_ENV":"dev",
+  "PORT":"3000",
   "JWT_KEY":"secret_this_should_be_longer_v1",
   "AUTH_SRV_USER": "mftsuser",
   "AUTH_SRV_PWD": "P@ssw0rd",
