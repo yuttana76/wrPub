@@ -112,7 +112,7 @@ exports.createUser = (req,res,next)=>{
   bcrypt.hash(req.body.password, SALT_WORK_FACTOR)
   .then(hash =>{
 
-      var queryStr = `INSERT INTO   [MFTS].[dbo].[MIT_USERS] (LoginName,USERID,PASSWD,EMAIL,STATUS,CREATEBY,CREATEDATE)
+      var queryStr = `INSERT INTO   [MIT_USERS] (LoginName,USERID,PASSWD,EMAIL,STATUS,CREATEBY,CREATEDATE)
                       VALUES('${_userName}','${_userName}','${hash}','${_userName}','A','WEB-APP',GETDATE());`;
 
       var sql = require("mssql");

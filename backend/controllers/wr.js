@@ -59,13 +59,50 @@ exports.getCustomerInfo = (req, res, next) => {
 
 
 
+exports.getAccountByCustID = (req, res, next) => {
+
+  var fncName = 'getAccountByCustID';
+  var custCode = req.params.cusCode;
+
+  logger.info( `API /account - ${req.originalUrl} - ${req.ip} -custCode:${custCode}`);
+
+  var queryStr = `
+      SELECT Account_No from MIT_Account_Info_ext
+      WHERE  STATUS = 'A'
+      AND USERID ='${custCode}'
+      ORDER BY Account_No
+  `;
+
+  const sql = require('mssql')
+  const pool1 = new sql.ConnectionPool(config, err => {
+    pool1.request() // or: new sql.Request(pool1)
+    .query(queryStr, (err, result) => {
+        // ... error checks
+        if(err){
+          console.log( fncName +' Quey db. Was err !!!' + err);
+          res.status(201).json({
+            message: err,
+          });
+        }else {
+          res.status(200).json({
+            message: fncName + "Quey db. successfully!",
+            result: result.recordset
+          });
+        }
+    })
+  })
+  pool1.on('error', err => {
+    console.log("EROR>>"+err);
+  })
+}
+
+
 exports.getSummaryByCustID = (req, res, next) => {
 
   var fncName = 'getCustomerInfo';
   var custCode = req.params.cusCode;
-  var dueDate = req.body.dueDate;
 
-  logger.info( `API /summaryByCust - ${req.originalUrl} - ${req.ip} -dueDate:${dueDate}`);
+  logger.info( `API /summaryByCust - ${req.originalUrl} - ${req.ip} -custCode:${custCode}`);
 
   var queryStr = `
   BEGIN
@@ -75,8 +112,6 @@ DECLARE @DataDate date;
 
 SELECT TOP 1  @DataDate = DataDate   FROM [WR_MFTS].[dbo].[IT_CustPortValueEndDay]
 WHERE CustID= @CustID
-  OR CustID= @CustID+'-2'
-  OR CustID= @CustID+'-3'
   ORDER BY DataDate;
 
 SELECT [CustID]
@@ -99,8 +134,6 @@ SELECT [CustID]
   LEFT JOIN  [WR_MFTS].[dbo].[MFTS_Amc] c ON a.AMCID = c.Amc_Id
   WHERE  Status ='A'
   AND CustID= @CustID
-  OR CustID= @CustID+'-2'
-  OR CustID= @CustID+'-3'
   AND DataDate = @DataDate
 
 END
@@ -136,10 +169,10 @@ exports.getDividendByCustID = (req, res, next) => {
 
   var fncName = 'getDividendByCustID';
   var custCode = req.params.cusCode;
-  var fromDate = req.body.fromDate;
-  var toDate = req.body.toDate;
+  var fromDate = req.query.fromDate;
+  var toDate = req.query.toDate;
 
-  logger.info( `API /dividend - ${req.originalUrl} - ${req.ip} -fromDate:${fromDate} -toDate:${toDate}`);
+  logger.info( `API /dividend - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
   var queryStr = `
     BEGIN
@@ -158,8 +191,6 @@ exports.getDividendByCustID = (req, res, next) => {
     , [WR_MFTS].[dbo].[MFTS_Account] x
     WHERE a.Ref_No=x.Ref_No
     AND x.Account_No= @CustID
-    OR x.Account_No= @CustID+'-2'
-    OR x.Account_No= @CustID+'-3'
     AND XD_DATE BETWEEN '${fromDate}' AND '${toDate}'
     ORDER BY x.Account_No,b.Fund_Code, XD_DATE
     END
@@ -194,23 +225,23 @@ exports.getFromSell = (req, res, next) => {
 
   var fncName = 'getFromSell';
   var custCode = req.params.cusCode;
-  var fromDate = req.body.fromDate;
-  var toDate = req.body.toDate;
+  var fromDate = req.query.fromDate;
+  var toDate = req.query.toDate;
 
-  logger.info( `API /onSell - ${req.originalUrl} - ${req.ip} -fromDate:${fromDate} -toDate:${toDate}`);
+  logger.info( `API /onSell - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
   var queryStr = `
   BEGIN
   DECLARE @CustID VARCHAR(20) = '${custCode}';
-  SELECT a.TranType_Code, a.ExecuteDate
+  SELECT b.Fund_Code,b.FGroup_Code
+  ,a.TranType_Code, a.ExecuteDate
   ,a.Amount_Baht,a.Amount_Unit,a.Nav_Price,a.RGL
       FROM [WR_MFTS].[dbo].[MFTS_Transaction] a
+      LEFT JOIN   [WR_MFTS].[dbo].[MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
     , [WR_MFTS].[dbo].[MFTS_Account] x
     where a.Ref_No=x.Ref_No
     AND TranType_Code IN ('S','SO')
     AND x.Account_No= @CustID
-    OR x.Account_No= @CustID+'-2'
-    OR x.Account_No= @CustID+'-3'
     AND ExecuteDate BETWEEN '${fromDate}' AND '${toDate}'
     order by a.ExecuteDate ;
     END`;
@@ -246,10 +277,10 @@ exports.getTransaction = (req, res, next) => {
 
   var fncName = 'getTransaction';
   var custCode = req.params.cusCode;
-  var fromDate = req.body.fromDate;
-  var toDate = req.body.toDate;
+  var fromDate = req.query.fromDate;
+  var toDate = req.query.toDate;
 
-  logger.info( `API /transaction - ${req.originalUrl} - ${req.ip} -fromDate:${fromDate} -toDate:${toDate}`);
+  logger.info( `API /transaction - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
   var queryStr = `
             BEGIN
@@ -266,8 +297,6 @@ exports.getTransaction = (req, res, next) => {
           , [WR_MFTS].[dbo].[MFTS_Account] x
             WHERE a.Ref_No=x.Ref_No
             AND x.Account_No= @CustID
-              OR x.Account_No= @CustID+'-2'
-              OR x.Account_No= @CustID+'-3'
             AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
             ORDER BY a.Tran_Date;
 

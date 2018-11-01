@@ -9,13 +9,10 @@ const wrRoutes = require('./routes/wr');
 
 // const connexRoutes = require('./routes/connex');
 // const fundRoutes = require('./routes/fund');
-
-
-
 // const utilityRoutes = require('./routes/utility');
-
 // const amcRoutes = require('./routes/amc');
 // const transRoutes = require('./routes/transaction');
+
 // const customerRoutes = require('./routes/customer');
 
 // const clientTypeRoutes = require('./routes/clientType');
@@ -63,19 +60,31 @@ app.use("/api/wr",wrRoutes);
 
 // // ***** Master data
 // app.use("/api/clientType",clientTypeRoutes);
+
 // app.use("/api/PIDType",PIDTypesRoutes);
+
 // app.use("/api/thaiTitle",thaiTitleRoutes);
+
 // app.use("/api/engTitle",engTitleRoutes);
+
 // app.use("/api/country",countryRoutes);
+
 // app.use("/api/province",provinceRoutes);
+
 // app.use("/api/amphur",amphurRoutes);
+
 // app.use("/api/tambon",tambonRoutes);
+
 // app.use("/api/nation",nationRoutes);
 
 // app.use("/api/saleAgent",saleAgentRoutes);
+
 // app.use("/api/wipcustomer",wipCustomerRoutes);
+
 // app.use("/api/custAddress",custAddressRoutes);
+
 // app.use("/api/workFlow",workFlowRoutes);
+
 // app.use("/api/mail",mailRoutes);
 
 // app.use("/api/util",utilityRoutes);
