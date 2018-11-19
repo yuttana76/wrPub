@@ -291,7 +291,7 @@ exports.getTransaction = (req, res, next) => {
             , a.TranType_Code
             , a.Tran_Date
             , a.ExecuteDate
-            , a.Amount_Baht, a.Amount_Unit, a.Nav_Price, a.RGL
+            , a.Amount_Baht, a.Amount_Unit, a.Nav_Price, a.Avg_Cost, a.RGL
             FROM [WR_MFTS].[dbo].[MFTS_Transaction] a
             LEFT JOIN [WR_MFTS].[dbo].[MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
           , [WR_MFTS].[dbo].[MFTS_Account] x
