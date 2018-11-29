@@ -29,7 +29,7 @@ exports.getCustomerInfo = (req, res, next) => {
       ,[Title_Name_E]
       ,[First_Name_E]
       ,[Last_Name_E]
-    FROM [MFTS].[dbo].[MIT_Account_Profile]
+    FROM [MIT_Account_Profile]
     WHERE Cust_Code='${custCode}'`;
 
     const sql = require('mssql')
@@ -129,9 +129,9 @@ SELECT [CustID]
       ,[ReturnPC]
       ,[Proportion]
       ,DataDate
-  FROM [WR_MFTS].[dbo].[IT_CustPortValueEndDay] a
-  LEFT JOIN   [WR_MFTS].[dbo].[MFTS_Fund] b ON a.FundID = b.Fund_Id
-  LEFT JOIN  [WR_MFTS].[dbo].[MFTS_Amc] c ON a.AMCID = c.Amc_Id
+  FROM [IT_CustPortValueEndDay] a
+  LEFT JOIN   [MFTS_Fund] b ON a.FundID = b.Fund_Id
+  LEFT JOIN  [MFTS_Amc] c ON a.AMCID = c.Amc_Id
   WHERE  Status ='A'
   AND CustID= @CustID
   AND DataDate = @DataDate
@@ -186,9 +186,9 @@ exports.getDividendByCustID = (req, res, next) => {
     ,a.DivPerUnit,a.Unit
     ,a.DivPerUnit * a.Unit AS VAL
     ,(a.DivPerUnit * a.Unit) - a.Tax_Amount AS NET_VAL
-    FROM [WR_MFTS].[dbo].[MFTS_Dividend] a
-    LEFT JOIN   [WR_MFTS].[dbo].[MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
-    , [WR_MFTS].[dbo].[MFTS_Account] x
+    FROM [MFTS_Dividend] a
+    LEFT JOIN   [MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
+    , [MFTS_Account] x
     WHERE a.Ref_No=x.Ref_No
     AND x.Account_No= @CustID
     AND XD_DATE BETWEEN '${fromDate}' AND '${toDate}'
@@ -236,9 +236,9 @@ exports.getFromSell = (req, res, next) => {
   SELECT b.Fund_Code,b.FGroup_Code
   ,a.TranType_Code, a.ExecuteDate
   ,a.Amount_Baht,a.Amount_Unit,a.Nav_Price,a.RGL
-      FROM [WR_MFTS].[dbo].[MFTS_Transaction] a
-      LEFT JOIN   [WR_MFTS].[dbo].[MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
-    , [WR_MFTS].[dbo].[MFTS_Account] x
+      FROM [MFTS_Transaction] a
+      LEFT JOIN   [MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
+    , [MFTS_Account] x
     where a.Ref_No=x.Ref_No
     AND TranType_Code IN ('S','SO')
     AND x.Account_No= @CustID
@@ -292,9 +292,9 @@ exports.getTransaction = (req, res, next) => {
             , a.Tran_Date
             , a.ExecuteDate
             , a.Amount_Baht, a.Amount_Unit, a.Nav_Price, a.Avg_Cost, a.RGL
-            FROM [WR_MFTS].[dbo].[MFTS_Transaction] a
-            LEFT JOIN [WR_MFTS].[dbo].[MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
-          , [WR_MFTS].[dbo].[MFTS_Account] x
+            FROM [MFTS_Transaction] a
+            LEFT JOIN [MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
+          , [MFTS_Account] x
             WHERE a.Ref_No=x.Ref_No
             AND x.Account_No= @CustID
             AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
