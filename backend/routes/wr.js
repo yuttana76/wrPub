@@ -13,4 +13,6 @@ router.get("/dividend/:cusCode",  checkAuth, wrController.getDividendByCustID);
 router.get("/onSell/:cusCode",  checkAuth, wrController.getFromSell);
 router.get("/transaction/:cusCode",  checkAuth, wrController.getTransaction);
 
+//*********************** V.2 */
+router.get("/summaryGroupByFundType/:cusCode",  checkAuth, wrController.getSummaryGroupByFundType);
 module.exports = router;

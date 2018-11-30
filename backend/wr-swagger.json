@@ -1,0 +1,644 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "WR Application API",
+    "description": "WR Application API",
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "host": "localhost:3000",
+  "basePath": "/api",
+  "tags": [
+    {
+      "name": "WR-API",
+      "description": "API for wealth replublish"
+    }
+  ],
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+
+  "paths": {
+    "/user/login": {
+      "post": {
+        "tags": [
+          "WR-API"
+        ],
+        "summary": "login เข้าระบบ",
+        "description": "login เข้าระบบ โดยระบบจะ return token มาให้ โดยเบื้องต้นได้กำหนด expire date ไว้ 1 ชม",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "description": " User name & password ",
+            "schema": {
+              "$ref": "#/definitions/LoginModel"
+            }
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        }
+      }
+    },
+    "/wr/account/{userId}": {
+      "parameters": [
+        {
+          "name": "userId",
+          "in": "path",
+          "required": true,
+          "description": "ID of user that we want to find",
+          "type": "string"
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "description": "Token id you got from login API (Bearer token)",
+          "type": "string"
+        }
+      ],
+      "get": {
+        "tags": [
+          "WR-API"
+        ],
+        "summary": "Get accounts with given user",
+        "description": "แสดงข้อมูล Account ของลูกค้า",
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "type": "object",
+            "properties":{
+              "message":{
+                "type":"string"
+              }
+            }
+          },
+          "200": {
+            "description": "Data was found",
+            "schema": {
+              "$ref": "#/definitions/AccountListModel"
+            }
+          }
+        }
+      }
+    },
+
+    "/wr/summary/{AccountNo}": {
+      "parameters": [
+        {
+          "name": "AccountNo",
+          "in": "path",
+          "required": true,
+          "description": "AccountNo that we want to get summary data.",
+          "type": "string"
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "description": "Token id you got from login API (Bearer token)",
+          "type": "string"
+        }
+      ],
+      "get": {
+        "tags": [
+          "WR-API"
+        ],
+        "summary": "Get summary data with given account",
+        "description": "แสดงข้อมูลสรุปกองทุนของลูกค้า  (ใช้ในหน้า Dashboard และ Holding report)",
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "type": "object",
+            "properties":{
+              "message":{
+                "type":"string"
+              }
+            }
+          },
+          "200": {
+            "description": "Data was found",
+            "schema": {
+              "$ref": "#/definitions/SummaryListModel"
+            }
+          }
+        }
+      }
+    },
+
+    "/wr/dividend/{AccountNo}": {
+      "parameters": [
+        {
+          "name": "AccountNo",
+          "in": "path",
+          "required": true,
+          "description": "AccountNo that we want to get dividend data.",
+          "type": "string"
+        },
+        {
+          "name": "fromDate",
+          "in": "query",
+          "required": true,
+          "description": "Start date to query data",
+          "type": "string"
+        },
+        {
+          "name": "toDate",
+          "in": "query",
+          "required": true,
+          "description": "End date to query data",
+          "type": "string"
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "description": "Token id you got from login API (Bearer token)",
+          "type": "string"
+        }
+      ],
+      "get": {
+        "tags": [
+          "WR-API"
+        ],
+        "summary": "Get dividend data with given account",
+        "description": "แสดงข้อมูลปันผลของกองทุนในแต่ละบัญชี",
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "type": "object",
+            "properties":{
+              "message":{
+                "type":"string"
+              }
+            }
+          },
+          "422": {
+            "description": "Fields is required field",
+            "type": "object",
+            "properties":{
+              "code":{
+                "type":"string"
+              },
+              "message":{
+                "type":"string"
+              }
+            }
+          },
+          "200": {
+            "description": "Data was found",
+            "schema": {
+              "$ref": "#/definitions/SummaryListModel"
+            }
+          }
+        }
+      }
+    },
+
+    "/wr/onSell/{AccountNo}": {
+      "parameters": [
+        {
+          "name": "AccountNo",
+          "in": "path",
+          "required": true,
+          "description": "AccountNo that we want to get redemption data.",
+          "type": "string"
+        },
+        {
+          "name": "fromDate",
+          "in": "query",
+          "required": true,
+          "description": "Start date to query data",
+          "type": "string"
+        },
+        {
+          "name": "toDate",
+          "in": "query",
+          "required": true,
+          "description": "End date to query data",
+          "type": "string"
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "description": "Token id you got from login API (Bearer token)",
+          "type": "string"
+        }
+      ],
+      "get": {
+        "tags": [
+          "WR-API"
+        ],
+        "summary": "Redemption data with given account",
+        "description": "แสดงข้อมูลการทำรายการขาย  (ประวัติการทำรายการ)",
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "type": "object",
+            "properties":{
+              "message":{
+                "type":"string"
+              }
+            }
+          },
+          "422": {
+            "description": "Fields is required field",
+            "type": "object",
+            "properties":{
+              "code":{
+                "type":"string"
+              },
+              "message":{
+                "type":"string"
+              }
+            }
+          },
+          "200": {
+            "description": "Data was found",
+            "schema": {
+              "$ref": "#/definitions/SellListModel"
+            }
+          }
+        }
+      }
+    },
+
+    "/wr/transaction/{AccountNo}": {
+      "parameters": [
+        {
+          "name": "AccountNo",
+          "in": "path",
+          "required": true,
+          "description": "AccountNo that we want to get transaction data.",
+          "type": "string"
+        },
+        {
+          "name": "fromDate",
+          "in": "query",
+          "required": true,
+          "description": "Start date to query data",
+          "type": "string"
+        },
+        {
+          "name": "toDate",
+          "in": "query",
+          "required": true,
+          "description": "End date to query data",
+          "type": "string"
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "description": "Token id you got from login API (Bearer token)",
+          "type": "string"
+        }
+      ],
+      "get": {
+        "tags": [
+          "WR-API"
+        ],
+        "summary": "Transaction data with given account",
+        "description": "แสดงข้อมูลการทำรายการ  (ประวัติการทำรายการ)",
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "type": "object",
+            "properties":{
+              "message":{
+                "type":"string"
+              }
+            }
+          },
+          "422": {
+            "description": "Fields is required field",
+            "type": "object",
+            "properties":{
+              "code":{
+                "type":"string"
+              },
+              "message":{
+                "type":"string"
+              }
+            }
+          },
+          "200": {
+            "description": "Data was found",
+            "schema": {
+              "$ref": "#/definitions/TransactionListModel"
+            }
+          }
+        }
+      }
+    },
+
+    "/wr/summaryGroupByFundType/{AccountNo}": {
+      "parameters": [
+        {
+          "name": "AccountNo",
+          "in": "path",
+          "required": true,
+          "description": "AccountNo that we want to get summary data.",
+          "type": "string"
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "description": "Token id you got from login API (Bearer token)",
+          "type": "string"
+        }
+      ],
+      "get": {
+        "tags": [
+          "WR-API"
+        ],
+        "summary": "Get summary data with given account <b>V.2</b>",
+        "description": "แสดงข้อมูลสรุปกองทุนของลูกค้า  (ใช้ในหน้า Dashboard และ Holding report)",
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "type": "object",
+            "properties":{
+              "message":{
+                "type":"string"
+              }
+            }
+          },
+          "200": {
+            "description": "Data was found",
+            "schema": {
+              "$ref": "#/definitions/SummaryV2ListModel"
+            }
+          }
+        }
+      }
+    }
+
+  },
+  "definitions": {
+    "LoginModel":{
+      "required": [
+        "email",
+        "_id"
+      ],
+      "properties":{
+        "email":{
+          "type":"string",
+          "uniqueItems": true
+        },
+        "password":{
+          "type":"string"
+        }
+      }
+
+    },
+    "User": {
+      "properties": {
+        "token": {
+          "type": "string",
+          "uniqueItems": true
+        },
+        "expiresIn": {
+          "type": "string",
+          "uniqueItems": true
+        },
+        "userData": {
+          "type": "string"
+        },
+        "LoginName": {
+          "type": "string"
+        },
+        "USERID": {
+          "type": "string"
+        },
+        "FULLNAME": {
+          "type": "string"
+        }
+      }
+    },
+    "Users": {
+      "type": "array",
+      "$ref": "#/definitions/User"
+    },
+    "AccountModel":{
+      "properties": {
+        "Account_No": {
+          "type": "string",
+          "uniqueItems": true
+        }
+      }
+    },
+    "AccountListModel": {
+      "type": "array",
+      "$ref": "#/definitions/AccountModel"
+    },
+    "SummaryModel":{
+      "properties": {
+        "CustID": {
+          "type": "string"
+        },
+        "Amc_Code": {
+          "type": "string"
+        },
+        "Amc_Name": {
+          "type": "string"
+        },
+        "Fund_Code": {
+          "type": "string"
+        },
+        "FGroup_Code": {
+          "type": "string"
+        },
+        "BalanceUnit": {
+          "type": "string"
+        },
+        "AvgCostUnit": {
+          "type": "string"
+        },
+        "AvgCost": {
+          "type": "string"
+        },
+        "MarketPriceDate": {
+          "type": "string"
+        },
+        "MarketPrice": {
+          "type": "string"
+        },
+        "MarketValue": {
+          "type": "string"
+        },
+        "GainLoss": {
+          "type": "string"
+        },
+        "ReturnPC": {
+          "type": "string"
+        },
+        "Proportion": {
+          "type": "string"
+        },
+        "DataDate": {
+          "type": "string"
+        }
+      }
+    },
+    "SummaryListModel":{
+      "type": "array",
+      "$ref": "#/definitions/SummaryModel"
+    },
+
+    "DividendModel":{
+      "properties": {
+        "Account_No": {
+          "type": "string"
+        },
+        "Amc_id": {
+          "type": "string"
+        },
+        "Holder_id": {
+          "type": "string"
+        },
+        "Fund_Code": {
+          "type": "string"
+        },
+        "FGroup_Code": {
+          "type": "string"
+        },
+        "XD_Date": {
+          "type": "string"
+        },
+        "DivPerUnit": {
+          "type": "string"
+        },
+        "Unit": {
+          "type": "string"
+        },
+        "VAL": {
+          "type": "string"
+        },
+        "NET_VAL": {
+          "type": "string"
+        }
+      }
+    },
+    "DividendListModel":{
+      "type": "array",
+      "$ref": "#/definitions/DividendModel"
+    },
+
+    "SellModel":{
+      "properties": {
+        "Fund_Code": {
+          "type": "string"
+        },
+        "FGroup_Code": {
+          "type": "string"
+        },
+        "TranType_Code": {
+          "type": "string"
+        },
+        "ExecuteDate": {
+          "type": "string"
+        },
+        "Amount_Baht": {
+          "type": "string"
+        },
+        "Amount_Unit": {
+          "type": "string"
+        },
+        "Nav_Price": {
+          "type": "string"
+        },
+        "RGL": {
+          "type": "string"
+        }
+      }
+    },
+    "SellListModel":{
+      "type": "array",
+      "$ref": "#/definitions/SellModel"
+    },
+
+    "TransactionModel":{
+      "properties": {
+        "Fund_Code": {
+          "type": "string"
+        },
+        "FGroup_Code": {
+          "type": "string"
+        },
+        "TranType_Code": {
+          "type": "string"
+        },
+        "Tran_Date": {
+          "type": "string"
+        },
+        "ExecuteDate": {
+          "type": "string"
+        },
+        "Amount_Baht": {
+          "type": "string"
+        },
+        "Amount_Unit": {
+          "type": "string"
+        },
+        "Nav_Price": {
+          "type": "string"
+        },
+        "Avg_Cost": {
+          "type": "string"
+        },
+        "RGL": {
+          "type": "string"
+        }
+      }
+    },
+    "TransactionListModel":{
+      "type": "array",
+      "$ref": "#/definitions/TransactionModel"
+    },
+
+    "SummaryV2Model":{
+      "properties": {
+        "FUND_TYPE": {
+          "type": "string"
+        },
+        "AVG_COST": {
+          "type": "string"
+        },
+        "TOTAL_COST": {
+          "type": "string"
+        },
+        "UN_GL": {
+          "type": "string"
+        },
+        "UN_GL_P": {
+          "type": "string"
+        }
+      }
+    },
+    "SummaryV2ListModel":{
+      "type": "array",
+      "$ref": "#/definitions/SummaryV2Model"
+    }
+  }
+}

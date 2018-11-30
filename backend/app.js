@@ -1,5 +1,9 @@
 var compression = require('compression')
 var helmet = require('helmet');
+
+var swaggerUi = require('swagger-ui-express'),
+wr_swaggerDocument = require('./wr-swagger.json');
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require("path");
@@ -50,8 +54,11 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(wr_swaggerDocument));
 app.use("/api/user",userRoutes);
 app.use("/api/wr",wrRoutes);
+
+
 // app.use("/api/connex",connexRoutes);
 // app.use("/api/fund",fundRoutes);
 // app.use("/api/amc",amcRoutes);

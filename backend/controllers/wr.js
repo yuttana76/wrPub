@@ -110,7 +110,7 @@ exports.getSummaryByCustID = (req, res, next) => {
 DECLARE @CustID VARCHAR(20) ='${custCode}';
 DECLARE @DataDate date;
 
-SELECT TOP 1  @DataDate = DataDate   FROM [WR_MFTS].[dbo].[IT_CustPortValueEndDay]
+SELECT TOP 1  @DataDate = DataDate   FROM [IT_CustPortValueEndDay]
 WHERE CustID= @CustID
   ORDER BY DataDate;
 
@@ -169,8 +169,15 @@ exports.getDividendByCustID = (req, res, next) => {
 
   var fncName = 'getDividendByCustID';
   var custCode = req.params.cusCode;
-  var fromDate = req.query.fromDate;
-  var toDate = req.query.toDate;
+  var fromDate = req.query.fromDate || '';
+  var toDate = req.query.toDate || '';
+
+  if (fromDate =='' || toDate ==''){
+    res.status(422).json({
+      code: 'E001',
+      message: `(fromDate ,fromDate )Fields is required field`
+    });
+  }
 
   logger.info( `API /dividend - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
@@ -228,6 +235,13 @@ exports.getFromSell = (req, res, next) => {
   var fromDate = req.query.fromDate;
   var toDate = req.query.toDate;
 
+  if (fromDate =='' || toDate ==''){
+    res.status(422).json({
+      code: 'E001',
+      message: `(fromDate ,fromDate )Fields is required field`
+    });
+  }
+
   logger.info( `API /onSell - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
   var queryStr = `
@@ -280,6 +294,13 @@ exports.getTransaction = (req, res, next) => {
   var fromDate = req.query.fromDate;
   var toDate = req.query.toDate;
 
+  if (fromDate =='' || toDate ==''){
+    res.status(422).json({
+      code: 'E001',
+      message: `(fromDate ,fromDate )Fields is required field`
+    });
+  }
+
   logger.info( `API /transaction - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
   var queryStr = `
@@ -301,6 +322,65 @@ exports.getTransaction = (req, res, next) => {
             ORDER BY a.Tran_Date;
 
           END `;
+
+  const sql = require('mssql')
+  const pool1 = new sql.ConnectionPool(config, err => {
+    pool1.request() // or: new sql.Request(pool1)
+    .query(queryStr, (err, result) => {
+        // ... error checks
+        if(err){
+          console.log( fncName +' Quey db. Was err !!!' + err);
+          res.status(201).json({
+            message: err,
+          });
+        }else {
+          res.status(200).json({
+            message: fncName + "Quey db. successfully!",
+            result: result.recordset
+          });
+        }
+    })
+  })
+
+  pool1.on('error', err => {
+    // ... error handler
+    console.log("EROR>>"+err);
+  })
+}
+//*********************** V.2 */
+
+exports.getSummaryGroupByFundType = (req, res, next) => {
+
+  var fncName = 'getCustomerInfo';
+  var custCode = req.params.cusCode;
+
+  logger.info( `API /summaryByCust - ${req.originalUrl} - ${req.ip} -custCode:${custCode}`);
+
+  var queryStr = `
+  BEGIN
+
+  DECLARE @CustID VARCHAR(20) ='${custCode}';
+  DECLARE @DataDate date;
+
+  --Find the max date
+  SELECT TOP 1  @DataDate = DataDate   FROM [WR_MFTS].[dbo].[IT_CustPortValueEndDay]
+  WHERE CustID= @CustID
+    ORDER BY DataDate;
+
+  SELECT a.* , a.TOTAL_COST-a.AVG_COST AS UN_GL,((a.TOTAL_COST-a.AVG_COST)/a.AVG_COST)*100 AS UN_GL_P
+  FROM (
+  SELECT b.FGroup_Code AS FUND_TYPE,SUM(AvgCost) AS AVG_COST,SUM(MarketValue) AS TOTAL_COST
+    FROM [IT_CustPortValueEndDay] a
+    LEFT JOIN   [MFTS_Fund] b ON a.FundID = b.Fund_Id
+    LEFT JOIN  [MFTS_Amc] c ON a.AMCID = c.Amc_Id
+    WHERE  Status ='A'
+    AND CustID= @CustID
+    AND DataDate = @DataDate
+  GROUP BY b.FGroup_Code
+  ) a
+
+  END
+  `;
 
   const sql = require('mssql')
   const pool1 = new sql.ConnectionPool(config, err => {
