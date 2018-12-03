@@ -206,7 +206,7 @@
           "200": {
             "description": "Data was found",
             "schema": {
-              "$ref": "#/definitions/SummaryListModel"
+              "$ref": "#/definitions/DividendListModel"
             }
           }
         }
@@ -350,7 +350,6 @@
         }
       }
     },
-
     "/wr/summaryGroupByFundType/{AccountNo}": {
       "parameters": [
         {
@@ -388,6 +387,135 @@
             "description": "Data was found",
             "schema": {
               "$ref": "#/definitions/SummaryV2ListModel"
+            }
+          }
+        }
+      }
+    },
+
+    "/wr/summaryGainLoss/{AccountNo}": {
+      "parameters": [
+        {
+          "name": "AccountNo",
+          "in": "path",
+          "required": true,
+          "description": "AccountNo that we want to get summary  gainloss data.",
+          "type": "string"
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "description": "Token id you got from login API (Bearer token)",
+          "type": "string"
+        }
+      ],
+      "get": {
+        "tags": [
+          "WR-API"
+        ],
+        "summary": "Get summary gainloss data with given account <b>V.2</b>",
+        "description": "ผลตอบแทนการลงทุน / กำไรขาดทุนจากการขาย  (Dashboard )",
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "type": "object",
+            "properties":{
+              "message":{
+                "type":"string"
+              }
+            }
+          },
+          "200": {
+            "description": "Data was found",
+            "schema": {
+              "$ref": "#/definitions/SummaryGLossListModel"
+            }
+          }
+        }
+      }
+    },
+
+    "/wr/summaryDividend/{AccountNo}": {
+      "parameters": [
+        {
+          "name": "AccountNo",
+          "in": "path",
+          "required": true,
+          "description": "AccountNo that we want to get summary  dividend data.",
+          "type": "string"
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "description": "Token id you got from login API (Bearer token)",
+          "type": "string"
+        }
+      ],
+      "get": {
+        "tags": [
+          "WR-API"
+        ],
+        "summary": "Get summary dividend data with given account <b>V.2</b>",
+        "description": "ผลตอบแทนการลงทุน / เงินปันผลเสริม  (Dashboard )",
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "type": "object",
+            "properties":{
+              "message":{
+                "type":"string"
+              }
+            }
+          },
+          "200": {
+            "description": "Data was found",
+            "schema": {
+              "$ref": "#/definitions/SummaryDivListModel"
+            }
+          }
+        }
+      }
+    },
+
+    "/wr/summaryUNGainLoss/{AccountNo}": {
+      "parameters": [
+        {
+          "name": "AccountNo",
+          "in": "path",
+          "required": true,
+          "description": "AccountNo that we want to get summary Unrealized Gain (Loss)  data.",
+          "type": "string"
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "description": "Token id you got from login API (Bearer token)",
+          "type": "string"
+        }
+      ],
+      "get": {
+        "tags": [
+          "WR-API"
+        ],
+        "summary": "Get summary Unrealized Gain (Loss) data with given account <b>V.2</b>",
+        "description": "ผลตอบแทนการลงทุน / กำไร(ขาดทุน)ที่ยังไม่รับรู้  (Dashboard )",
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "type": "object",
+            "properties":{
+              "message":{
+                "type":"string"
+              }
+            }
+          },
+          "200": {
+            "description": "Data was found",
+            "schema": {
+              "$ref": "#/definitions/SummaryUNGLListModel"
             }
           }
         }
@@ -464,37 +592,48 @@
           "type": "string"
         },
         "Fund_Code": {
-          "type": "string"
+          "type": "string",
+          "description": " Fund Code (รหัสกองทุน)"
         },
         "FGroup_Code": {
-          "type": "string"
+          "type": "string",
+          "description": " Fund type"
         },
         "BalanceUnit": {
-          "type": "string"
+          "type": "string",
+          "description": " หน่วยคงเหลือ"
         },
         "AvgCostUnit": {
-          "type": "string"
+          "type": "string",
+          "description": " ต้นทุนต่อหน่วย"
         },
         "AvgCost": {
-          "type": "string"
+          "type": "string",
+          "description": " มูลค่าต้นทุน"
         },
         "MarketPriceDate": {
-          "type": "string"
+          "type": "string",
+          "description": " วันที่คำนวณ"
         },
         "MarketPrice": {
-          "type": "string"
+          "type": "string",
+          "description": " ราคาต่อหน่วย ปัจจุบัน"
         },
         "MarketValue": {
-          "type": "string"
+          "type": "string",
+          "description": " มูลค่า ปัจจุบัน"
         },
         "GainLoss": {
-          "type": "string"
+          "type": "string",
+          "description": " กำไร-ขาดทุน (บาท)"
         },
         "ReturnPC": {
-          "type": "string"
+          "type": "string",
+          "description": " กำไร-ขาดทุน (บาท) %"
         },
         "Proportion": {
-          "type": "string"
+          "type": "string",
+          "description": "สัดส่วนที่ถือครอง "
         },
         "DataDate": {
           "type": "string"
@@ -620,25 +759,117 @@
     "SummaryV2Model":{
       "properties": {
         "FUND_TYPE": {
-          "type": "string"
+          "type": "string",
+          "description": " Fund type"
         },
         "AVG_COST": {
-          "type": "string"
+          "type": "string",
+          "description": " Average cost"
         },
         "TOTAL_COST": {
-          "type": "string"
+          "type": "string",
+          "description": " Total cost"
         },
         "UN_GL": {
-          "type": "string"
+          "type": "string",
+          "description": " Unrealized Gain(Loss)"
         },
         "UN_GL_P": {
-          "type": "string"
+          "type": "string",
+          "description": " Unrealized Gain(Loss) %"
         }
       }
     },
     "SummaryV2ListModel":{
       "type": "array",
       "$ref": "#/definitions/SummaryV2Model"
+    },
+
+    "SummaryGLossModel":{
+      "properties": {
+        "M1": {
+          "type": "string",
+          "description": " 1 Month"
+        },
+        "M3": {
+          "type": "string",
+          "description": " 3 Months"
+        },
+        "M6": {
+          "type": "string",
+          "description": " 6 Months"
+        },
+        "YR1": {
+          "type": "string",
+          "description": " 1 Year"
+        },
+        "BYear": {
+          "type": "string",
+          "description": " Begin year"
+        }
+      }
+    },
+    "SummaryGLossListModel":{
+      "type": "array",
+      "$ref": "#/definitions/SummaryGLossModel"
+    },
+
+    "SummaryDivModel":{
+      "properties": {
+        "DIV_M1": {
+          "type": "string",
+          "description": " 1 Month"
+        },
+        "DIV_M3": {
+          "type": "string",
+          "description": " 3 Months"
+        },
+        "DIV_M6": {
+          "type": "string",
+          "description": " 6 Months"
+        },
+        "DIV_YR1": {
+          "type": "string",
+          "description": " 1 Year"
+        },
+        "DIV_BYear": {
+          "type": "string",
+          "description": " Begin year"
+        }
+      }
+    },
+    "SummaryDivListModel":{
+      "type": "array",
+      "$ref": "#/definitions/SummaryDivModel"
+    },
+
+    "SummaryUNGLModel":{
+      "properties": {
+        "UNGL_M1": {
+          "type": "string",
+          "description": " 1 Month"
+        },
+        "UNGL_M3": {
+          "type": "string",
+          "description": " 3 Months"
+        },
+        "UNGL_M6": {
+          "type": "string",
+          "description": " 6 Months"
+        },
+        "UNGL_YR1": {
+          "type": "string",
+          "description": " 1 Year"
+        },
+        "UNGL_BYear": {
+          "type": "string",
+          "description": " Begin year"
+        }
+      }
+    },
+    "SummaryUNGLListModel":{
+      "type": "array",
+      "$ref": "#/definitions/SummaryUNGLModel"
     }
   }
 }

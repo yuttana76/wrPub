@@ -15,4 +15,7 @@ router.get("/transaction/:cusCode",  checkAuth, wrController.getTransaction);
 
 //*********************** V.2 */
 router.get("/summaryGroupByFundType/:cusCode",  checkAuth, wrController.getSummaryGroupByFundType);
+router.get("/summaryGainLoss/:cusCode",  checkAuth, wrController.getSummaryGainLoss);
+router.get("/summaryDividend/:cusCode",  checkAuth, wrController.getSummaryDividend);
+router.get("/summaryUNGainLoss/:cusCode",  checkAuth, wrController.getSummaryUNGainLoss);
 module.exports = router;
