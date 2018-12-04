@@ -232,15 +232,25 @@ exports.getFromSell = (req, res, next) => {
 
   var fncName = 'getFromSell';
   var custCode = req.params.cusCode;
-  var fromDate = req.query.fromDate;
-  var toDate = req.query.toDate;
+  var fromDate = req.query.fromDate || '';
+  var toDate = req.query.toDate || '';
 
-  // if (fromDate =='' || toDate ==''){
-  //   res.status(422).json({
-  //     code: 'E001',
-  //     message: `(fromDate ,fromDate )Fields is required field`
-  //   });
-  // }
+  if (fromDate =='' || toDate ==''){
+
+    var currentTime = new Date()
+    var year = currentTime.getFullYear()
+    //  year-mm-dd
+    fromDate = `${year}-01-01`;
+    toDate = `${year}-12-31`;
+
+    // res.status(422).json({
+    //   code: 'E001',
+    //   message: `(fromDate ,fromDate )Fields is required field`
+    // });
+
+  }
+
+  console.log ( 'fromDate=' + fromDate  + '  ;toDate=' +toDate );
 
   logger.info( `API /onSell - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
@@ -254,6 +264,7 @@ exports.getFromSell = (req, res, next) => {
 DECLARE @Amc_Name   [varchar](200);
 DECLARE @FGroup_Code   [varchar](15);
 DECLARE @Fund_Id   int;
+DECLARE @Seq_No   int;
 DECLARE @Fund_Code [varchar](30);
 DECLARE @TranType_Code [varchar](2);
 DECLARE @Ref_NO   [varchar](15);
@@ -285,7 +296,7 @@ declare @temp table(
 )
 
 DECLARE MFTS_Transaction_cursor CURSOR LOCAL  FOR
-SELECT c.Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Fund_Id,a.Ref_No,a.ExecuteDate
+SELECT c.Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Fund_Id,a.Seq_No,a.Ref_No,a.ExecuteDate
 ,a.Amount_Baht
 ,a.Amount_Unit
 ,a.Nav_Price
@@ -299,21 +310,24 @@ SELECT c.Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Fund_Id,a.Ref_No,a
   where a.Ref_No=x.Ref_No
   AND TranType_Code IN ('S','SO')
   AND x.Account_No= @CustID
-  AND ExecuteDate BETWEEN @firstDate AND GETDATE()
+  --AND ExecuteDate BETWEEN @firstDate AND GETDATE()
+  AND ExecuteDate BETWEEN '${fromDate}' AND '${toDate}'
 
   OPEN MFTS_Transaction_cursor
-      FETCH NEXT FROM MFTS_Transaction_cursor INTO @Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Fund_Id,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
+    FETCH NEXT FROM MFTS_Transaction_cursor INTO @Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Fund_Id,@Seq_No,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
 
           WHILE @@FETCH_STATUS = 0
           BEGIN
 
               IF ISNULL(@Cost_Amount_Baht,0) = 0
               BEGIN
-                  select @Avg_Cost= ISNULL(Avg_Cost,0)
+                  select TOP 1 @Avg_Cost= ISNULL(Avg_Cost,0)
                   from MFTS_Transaction
                   where  Ref_NO = @Ref_NO
                   AND Fund_Id = @Fund_Id
-                  AND TranType_Code IN ('B');
+                  AND Seq_No < @Seq_No
+                  AND TranType_Code IN ('B','SI','TI')
+                  ORDER BY Seq_No desc
 
                   SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
               END
@@ -326,7 +340,8 @@ SELECT c.Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Fund_Id,a.Ref_No,a
               INSERT INTO @temp
                  SELECT @Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,(@RGL/@Cost_Amount_Baht)*100
 
-              FETCH NEXT FROM MFTS_Transaction_cursor INTO @Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Fund_Id,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
+                 FETCH NEXT FROM MFTS_Transaction_cursor INTO @Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Fund_Id,@Seq_No,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
+
           END
 
       CLOSE MFTS_Transaction_cursor
@@ -336,6 +351,8 @@ SELECT c.Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Fund_Id,a.Ref_No,a
   SELECT * FROM @temp
 
 END`
+
+// console.log('QUERY>>' + queryStr);
 
   // var queryStr = `
   // BEGIN
@@ -817,12 +834,20 @@ exports.getSummaryOnSell = (req, res, next) => {
   var fromDate = req.query.fromDate || '';
   var toDate = req.query.toDate || '';
 
-  // if (fromDate =='' || toDate ==''){
-  //   res.status(422).json({
-  //     code: 'E001',
-  //     message: `(fromDate ,fromDate )Fields is required field`
-  //   });
-  // }
+  if (fromDate =='' || toDate ==''){
+
+    var currentTime = new Date()
+    var year = currentTime.getFullYear()
+    //  year-mm-dd
+    fromDate = `${year}-01-01`;
+    toDate = `${year}-12-31`;
+
+    console.log ( 'fromDate=' + fromDate  + '  ;toDate=' +toDate );
+    // res.status(422).json({
+    //   code: 'E001',
+    //   message: `(fromDate ,fromDate )Fields is required field`
+    // });
+  }
 
   logger.info( `API /onSell - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
@@ -836,22 +861,20 @@ exports.getSummaryOnSell = (req, res, next) => {
 
   DECLARE @FGroup_Code   [varchar](15);
   DECLARE @Fund_Id   int;
+  DECLARE @Seq_No   int;
   DECLARE @Ref_NO   [varchar](15);
-
   DECLARE @Amount_Baht   [decimal](18, 2)=0;
   DECLARE @SUM_Amount_Baht   [decimal](18, 2)=0;
   DECLARE @Amount_Unit   [decimal](18, 4)=0;
-
   DECLARE @Cost_Amount_Baht   [decimal](18, 2)=0;
   DECLARE @SUM_Cost_Amount_Baht   [decimal](30, 2)=0;
-
   DECLARE @RGL   [decimal](20, 6)=0 ;
   DECLARE @SUM_RGL   [decimal](20, 6);
 
   DECLARE @Avg_Cost [decimal](18, 2)=0;
 
   DECLARE MFTS_Transaction_cursor CURSOR LOCAL  FOR
-  SELECT b.FGroup_Code  ,a.Fund_Id,a.Ref_No
+  SELECT b.FGroup_Code  ,a.Fund_Id,a.Seq_No,a.Ref_No
   ,a.Amount_Baht
   ,a.Amount_Unit
   , a.Amount_Unit * a.Avg_Cost
@@ -862,21 +885,24 @@ exports.getSummaryOnSell = (req, res, next) => {
     where a.Ref_No=x.Ref_No
     AND TranType_Code IN ('S','SO')
     AND x.Account_No= @CustID
-    AND ExecuteDate BETWEEN @firstDate AND GETDATE()
+    --AND ExecuteDate BETWEEN @firstDate AND GETDATE()
+    AND ExecuteDate BETWEEN '${fromDate}' AND '${toDate}'
 
     OPEN MFTS_Transaction_cursor
-        FETCH NEXT FROM MFTS_Transaction_cursor INTO @FGroup_Code,@Fund_Id,@Ref_NO,@Amount_Baht,@Amount_Unit,@Cost_Amount_Baht,@RGL
+        FETCH NEXT FROM MFTS_Transaction_cursor INTO @FGroup_Code,@Fund_Id,@Seq_No,@Ref_NO,@Amount_Baht,@Amount_Unit,@Cost_Amount_Baht,@RGL
 
             WHILE @@FETCH_STATUS = 0
             BEGIN
 
                 IF ISNULL(@Cost_Amount_Baht,0) = 0
                 BEGIN
-                    select @Avg_Cost= ISNULL(Avg_Cost,0)
+                    select TOP 1 @Avg_Cost= ISNULL(Avg_Cost,0)
                     from MFTS_Transaction
                     where  Ref_NO = @Ref_NO
                     AND Fund_Id = @Fund_Id
-                    AND TranType_Code IN ('B');
+                    AND Seq_No < @Seq_No
+                    AND TranType_Code IN ('B','SI','TI')
+                    ORDER BY Seq_No desc
 
                     SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
                 END
@@ -891,7 +917,7 @@ exports.getSummaryOnSell = (req, res, next) => {
                 -- SET  @SUM_RGL =  ISNULL(@SUM_RGL,0) + ISNULL(@RGL,0)
                 SET  @SUM_RGL =  ISNULL(@SUM_RGL,0) + ( ISNULL(@Amount_Baht,0) - ISNULL(@Cost_Amount_Baht,0))
 
-                FETCH NEXT FROM MFTS_Transaction_cursor INTO @FGroup_Code,@Fund_Id,@Ref_NO,@Amount_Baht,@Amount_Unit,@Cost_Amount_Baht,@RGL
+                FETCH NEXT FROM MFTS_Transaction_cursor INTO @FGroup_Code,@Fund_Id,@Seq_No,@Ref_NO,@Amount_Baht,@Amount_Unit,@Cost_Amount_Baht,@RGL
             END
 
         CLOSE MFTS_Transaction_cursor

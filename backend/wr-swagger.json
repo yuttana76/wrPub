@@ -225,14 +225,14 @@
         {
           "name": "fromDate",
           "in": "query",
-          "required": true,
+          "required": false,
           "description": "Start date to query data",
           "type": "string"
         },
         {
           "name": "toDate",
           "in": "query",
-          "required": true,
+          "required": false,
           "description": "End date to query data",
           "type": "string"
         },
@@ -529,6 +529,20 @@
           "in": "path",
           "required": true,
           "description": "AccountNo that we want to get Total Redemption and Switch-out transaction  data.",
+          "type": "string"
+        },
+        {
+          "name": "fromDate",
+          "in": "query",
+          "required": false,
+          "description": "Start date to query data",
+          "type": "string"
+        },
+        {
+          "name": "toDate",
+          "in": "query",
+          "required": false,
+          "description": "End date to query data",
           "type": "string"
         },
         {
