@@ -520,6 +520,49 @@
           }
         }
       }
+    },
+
+    "/wr/summaryOnSell/{AccountNo}": {
+      "parameters": [
+        {
+          "name": "AccountNo",
+          "in": "path",
+          "required": true,
+          "description": "AccountNo that we want to get Total Redemption and Switch-out transaction  data.",
+          "type": "string"
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "description": "Token id you got from login API (Bearer token)",
+          "type": "string"
+        }
+      ],
+      "get": {
+        "tags": [
+          "WR-API"
+        ],
+        "summary": "Total Redemption and Switch-out transaction with given account <b>V.2</b>",
+        "description": "รายการขายละสับเปลี่ยนออก / Realized Gain Report",
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "type": "object",
+            "properties":{
+              "message":{
+                "type":"string"
+              }
+            }
+          },
+          "200": {
+            "description": "Data was found",
+            "schema": {
+              "$ref": "#/definitions/SummaryOnSellListModel"
+            }
+          }
+        }
+      }
     }
 
   },
@@ -686,29 +729,57 @@
 
     "SellModel":{
       "properties": {
-        "Fund_Code": {
-          "type": "string"
+        "Amc_Name": {
+          "type": "string",
+          "description": " AMC "
         },
         "FGroup_Code": {
-          "type": "string"
+          "type": "string",
+          "description": " Fund type"
+        },
+        "Fund_Code": {
+          "type": "string",
+          "description": " Fund Code"
         },
         "TranType_Code": {
-          "type": "string"
+          "type": "string",
+          "description": " Transaction Type S: Sell;  SO:"
+        },
+        "Ref_No": {
+          "type": "string",
+          "description": " Reference Number"
         },
         "ExecuteDate": {
-          "type": "string"
+          "type": "string",
+          "description": " Execute Date"
         },
         "Amount_Baht": {
-          "type": "string"
+          "type": "string",
+          "description": " Amount Date (Baht)"
         },
         "Amount_Unit": {
-          "type": "string"
+          "type": "string",
+          "description": " Unit"
         },
         "Nav_Price": {
-          "type": "string"
+          "type": "string",
+          "description": " NAV price"
+        },
+        "Avg_Cost": {
+          "type": "string",
+          "description": " Average cost"
+        },
+        "Cost_Amount_Baht": {
+          "type": "string",
+          "description": " Coste amount (Baht)"
         },
         "RGL": {
-          "type": "string"
+          "type": "string",
+          "description": " Gain Loss(Baht)"
+        },
+        "RGL_P": {
+          "type": "string",
+          "description": " Gain Loss(%)"
         }
       }
     },
@@ -870,6 +941,33 @@
     "SummaryUNGLListModel":{
       "type": "array",
       "$ref": "#/definitions/SummaryUNGLModel"
+    },
+
+    "SummaryOnSellModel":{
+      "properties": {
+
+        "SUM_Amount_Baht": {
+          "type": "string",
+          "description": "มูลค่ารายการ"
+        },
+        "SUM_Cost_Amount_Baht": {
+          "type": "string",
+          "description": "มูลค่าเงินต้นทุน"
+        },
+        "SUM_RGL": {
+          "type": "string",
+          "description": "กำไรขาดทุน"
+        },
+        "SUM_RGL_P": {
+          "type": "string",
+          "description": "กำไรขาดทุน (%)"
+        }
+      }
+    },
+    "SummaryOnSellListModel":{
+      "type": "array",
+      "$ref": "#/definitions/SummaryOnSellModel"
     }
+
   }
 }
