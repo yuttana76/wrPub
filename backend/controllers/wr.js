@@ -110,9 +110,10 @@ exports.getSummaryByCustID = (req, res, next) => {
 DECLARE @CustID VARCHAR(20) ='${custCode}';
 DECLARE @DataDate date;
 
-SELECT TOP 1  @DataDate = DataDate   FROM [IT_CustPortValueEndDay]
+SELECT TOP 1  @DataDate = DataDate
+FROM [IT_CustPortValueEndDay]
 WHERE CustID= @CustID
-  ORDER BY DataDate;
+ORDER BY DataDate;
 
 SELECT [CustID]
       ,c.Amc_Code
@@ -173,10 +174,17 @@ exports.getDividendByCustID = (req, res, next) => {
   var toDate = req.query.toDate || '';
 
   if (fromDate =='' || toDate ==''){
-    res.status(422).json({
-      code: 'E001',
-      message: `(fromDate ,fromDate )Fields is required field`
-    });
+
+    var currentTime = new Date()
+    var year = currentTime.getFullYear()
+    //  year-mm-dd
+    fromDate = `${year}-01-01`;
+    toDate = `${year}-12-31`;
+
+    // res.status(422).json({
+    //   code: 'E001',
+    //   message: `(fromDate ,fromDate )Fields is required field`
+    // });
   }
 
   logger.info( `API /dividend - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
@@ -250,8 +258,6 @@ exports.getFromSell = (req, res, next) => {
 
   }
 
-  console.log ( 'fromDate=' + fromDate  + '  ;toDate=' +toDate );
-
   logger.info( `API /onSell - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
   var queryStr =  `BEGIN
@@ -308,6 +314,7 @@ SELECT c.Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Fund_Id,a.Seq_No,a
     LEFT JOIN   MFTS_Amc c ON b.Amc_Id=c.Amc_Id
   , [MFTS_Account] x
   where a.Ref_No=x.Ref_No
+  AND a.Status_Id=7
   AND TranType_Code IN ('S','SO')
   AND x.Account_No= @CustID
   --AND ExecuteDate BETWEEN @firstDate AND GETDATE()
@@ -326,6 +333,7 @@ SELECT c.Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Fund_Id,a.Seq_No,a
                   where  Ref_NO = @Ref_NO
                   AND Fund_Id = @Fund_Id
                   AND Seq_No < @Seq_No
+                  AND Status_Id=7
                   AND TranType_Code IN ('B','SI','TI')
                   ORDER BY Seq_No desc
 
@@ -428,6 +436,8 @@ exports.getTransaction = (req, res, next) => {
           , [MFTS_Account] x
             WHERE a.Ref_No=x.Ref_No
             AND x.Account_No= @CustID
+            AND a.TranType_Code IN ('S','SO','B','SI','TI')
+            AND a.Status_Id=7
             AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
             ORDER BY a.Tran_Date;
 
@@ -545,44 +555,49 @@ select @1year = DateAdd(year,-1, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0) )
 -- select @firstDate,@1month,@3month,@6month,@1year
 SELECT *
 FROM
-  (SELECT SUM(a.RGL) M1
+  (SELECT ISNULL(SUM(a.RGL),0) M1
       FROM [MFTS_Transaction] a
     , [MFTS_Account] x
     where a.Ref_No=x.Ref_No
+    AND a.Status_Id=7
     AND TranType_Code IN ('S','SO')
     AND x.Account_No= @CustID
     AND ExecuteDate BETWEEN @firstDate AND @1month) M1,
 
-  (SELECT SUM(a.RGL) M3
+  (SELECT ISNULL(SUM(a.RGL),0) M3
       FROM [MFTS_Transaction] a
     , [MFTS_Account] x
     where a.Ref_No=x.Ref_No
+    AND a.Status_Id=7
     AND TranType_Code IN ('S','SO')
     AND x.Account_No= @CustID
     AND ExecuteDate BETWEEN @firstDate AND @3month) M3,
 
-  (SELECT SUM(a.RGL) AS M6
+  (SELECT ISNULL(SUM(a.RGL),0) AS M6
       FROM [MFTS_Transaction] a
     , [MFTS_Account] x
     where a.Ref_No=x.Ref_No
+    AND a.Status_Id=7
     AND TranType_Code IN ('S','SO')
     AND x.Account_No= @CustID
     AND ExecuteDate BETWEEN @firstDate AND @6month) M6,
 
 --      -- 1 Year
-  (SELECT SUM(a.RGL) AS YR1
+  (SELECT ISNULL(SUM(a.RGL),0) AS YR1
       FROM [MFTS_Transaction] a
     , [MFTS_Account] x
     where a.Ref_No=x.Ref_No
+    AND a.Status_Id=7
     AND TranType_Code IN ('S','SO')
     AND x.Account_No= @CustID
     AND ExecuteDate BETWEEN @1year AND GETDATE()) Y1,
 
 --      -- BEGIN Year
-  (SELECT SUM(a.RGL) AS BYear
+  (SELECT ISNULL(SUM(a.RGL),0) AS BYear
       FROM [MFTS_Transaction] a
     , [MFTS_Account] x
     where a.Ref_No=x.Ref_No
+    AND a.Status_Id=7
     AND TranType_Code IN ('S','SO')
     AND x.Account_No= @CustID
     AND ExecuteDate BETWEEN @firstDate AND GETDATE()) BYear
@@ -842,7 +857,6 @@ exports.getSummaryOnSell = (req, res, next) => {
     fromDate = `${year}-01-01`;
     toDate = `${year}-12-31`;
 
-    console.log ( 'fromDate=' + fromDate  + '  ;toDate=' +toDate );
     // res.status(422).json({
     //   code: 'E001',
     //   message: `(fromDate ,fromDate )Fields is required field`
@@ -883,6 +897,7 @@ exports.getSummaryOnSell = (req, res, next) => {
       LEFT JOIN   [MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
     , [MFTS_Account] x
     where a.Ref_No=x.Ref_No
+    AND a.Status_Id=7
     AND TranType_Code IN ('S','SO')
     AND x.Account_No= @CustID
     --AND ExecuteDate BETWEEN @firstDate AND GETDATE()
@@ -901,6 +916,7 @@ exports.getSummaryOnSell = (req, res, next) => {
                     where  Ref_NO = @Ref_NO
                     AND Fund_Id = @Fund_Id
                     AND Seq_No < @Seq_No
+                    AND Status_Id=7
                     AND TranType_Code IN ('B','SI','TI')
                     ORDER BY Seq_No desc
 
@@ -928,6 +944,71 @@ exports.getSummaryOnSell = (req, res, next) => {
     , (@SUM_RGL/@SUM_Cost_Amount_Baht)*100 SUM_RGL_P
 
 END
+    `;
+
+  const sql = require('mssql')
+  const pool1 = new sql.ConnectionPool(config, err => {
+    pool1.request() // or: new sql.Request(pool1)
+    .query(queryStr, (err, result) => {
+        // ... error checks
+        if(err){
+          console.log( fncName +' Quey db. Was err !!!' + err);
+          res.status(201).json({
+            message: err,
+          });
+        }else {
+          res.status(200).json({
+            message: fncName + "Quey db. successfully!",
+            result: result.recordset
+          });
+        }
+    })
+  })
+
+  pool1.on('error', err => {
+    // ... error handler
+    console.log("EROR>>"+err);
+  })
+}
+
+
+
+exports.getSummaryDividend = (req, res, next) => {
+
+  var fncName = 'getSummaryDividend';
+  var custCode = req.params.cusCode;
+  var fromDate = req.query.fromDate || '';
+  var toDate = req.query.toDate || '';
+
+  if (fromDate =='' || toDate ==''){
+
+    var currentTime = new Date()
+    var year = currentTime.getFullYear()
+    //  year-mm-dd
+    fromDate = `${year}-01-01`;
+    toDate = `${year}-12-31`;
+
+    // res.status(422).json({
+    //   code: 'E001',
+    //   message: `(fromDate ,fromDate )Fields is required field`
+    // });
+  }
+
+  logger.info( `API /onSell - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
+
+  var queryStr = `
+  BEGIN
+  DECLARE @CustID VARCHAR(20) ='${custCode}';
+
+  SELECT SUM((a.DivPerUnit * a.Unit)) AS DIV_AMOUNT,SUM(a.Tax_Amount) DIV_TAX,SUM((a.DivPerUnit * a.Unit) - a.Tax_Amount) DIV_NET_AMOUNT
+  FROM [MFTS_Dividend] a
+  LEFT JOIN   [MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
+  , [MFTS_Account] x
+  WHERE a.Ref_No=x.Ref_No
+  AND x.Account_No= @CustID
+  AND XD_DATE BETWEEN '${fromDate}' AND '${toDate}'
+
+  END
     `;
 
   const sql = require('mssql')

@@ -156,14 +156,14 @@
         {
           "name": "fromDate",
           "in": "query",
-          "required": true,
+          "required": false,
           "description": "Start date to query data",
           "type": "string"
         },
         {
           "name": "toDate",
           "in": "query",
-          "required": true,
+          "required": false,
           "description": "End date to query data",
           "type": "string"
         },
@@ -577,6 +577,63 @@
           }
         }
       }
+    },
+
+    "/wr/summaryDividend/{AccountNo}": {
+      "parameters": [
+        {
+          "name": "AccountNo",
+          "in": "path",
+          "required": true,
+          "description": "AccountNo that we want to get summary dividend data.",
+          "type": "string"
+        },
+        {
+          "name": "fromDate",
+          "in": "query",
+          "required": false,
+          "description": "Start date to query data",
+          "type": "string"
+        },
+        {
+          "name": "toDate",
+          "in": "query",
+          "required": false,
+          "description": "End date to query data",
+          "type": "string"
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "description": "Token id you got from login API (Bearer token)",
+          "type": "string"
+        }
+      ],
+      "get": {
+        "tags": [
+          "WR-API"
+        ],
+        "summary": "Total Dividend Racvied <b>V.2</b>",
+        "description": "รวมเงินปันผลรับ / Total Dividend Racvied ",
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "type": "object",
+            "properties":{
+              "message":{
+                "type":"string"
+              }
+            }
+          },
+          "200": {
+            "description": "Data was found",
+            "schema": {
+              "$ref": "#/definitions/SummaryDividendListModel"
+            }
+          }
+        }
+      }
     }
 
   },
@@ -981,6 +1038,28 @@
     "SummaryOnSellListModel":{
       "type": "array",
       "$ref": "#/definitions/SummaryOnSellModel"
+    },
+
+    "SummaryDividendModel":{
+      "properties": {
+
+        "DIV_AMOUNT": {
+          "type": "string",
+          "description": "เงินปันผลรวม"
+        },
+        "DIV_TAX": {
+          "type": "string",
+          "description": "ภาษี ณ ที่จ่าย"
+        },
+        "DIV_NET_AMOUNT": {
+          "type": "string",
+          "description": "เงินปันผลสุทธิ"
+        }
+      }
+    },
+    "SummaryDividendListModel":{
+      "type": "array",
+      "$ref": "#/definitions/SummaryDividendModel"
     }
 
   }
