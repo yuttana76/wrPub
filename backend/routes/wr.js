@@ -21,5 +21,6 @@ router.get("/summaryUNGainLoss/:cusCode",  checkAuth, wrController.getSummaryUNG
 
 router.get("/summaryOnSell/:cusCode",  checkAuth, wrController.getSummaryOnSell);
 router.get("/summaryDividend/:cusCode",  checkAuth, wrController.getSummaryDividend);
+router.get("/summaryTransaction/:cusCode",  checkAuth, wrController.getSummaryTransaction);
 
 module.exports = router;

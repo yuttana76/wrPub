@@ -294,14 +294,14 @@
         {
           "name": "fromDate",
           "in": "query",
-          "required": true,
+          "required": false,
           "description": "Start date to query data",
           "type": "string"
         },
         {
           "name": "toDate",
           "in": "query",
-          "required": true,
+          "required": false,
           "description": "End date to query data",
           "type": "string"
         },
@@ -344,7 +344,7 @@
           "200": {
             "description": "Data was found",
             "schema": {
-              "$ref": "#/definitions/TransactionListModel"
+              "$ref": "#/definitions/SellListModel"
             }
           }
         }
@@ -579,13 +579,13 @@
       }
     },
 
-    "/wr/summaryDividend/{AccountNo}": {
+    "/wr/summaryTransaction/{AccountNo}": {
       "parameters": [
         {
           "name": "AccountNo",
           "in": "path",
           "required": true,
-          "description": "AccountNo that we want to get summary dividend data.",
+          "description": "AccountNo that we want to get summary trasaction data.",
           "type": "string"
         },
         {
@@ -614,8 +614,8 @@
         "tags": [
           "WR-API"
         ],
-        "summary": "Total Dividend Racvied <b>V.2</b>",
-        "description": "รวมเงินปันผลรับ / Total Dividend Racvied ",
+        "summary": "Total Transaction Report - By Date <b>V.2</b>",
+        "description": "ประวัติการทำรายการ / Total Transaction Report - By Date ",
         "responses": {
           "401": {
             "description": "Unauthorized",
@@ -629,12 +629,13 @@
           "200": {
             "description": "Data was found",
             "schema": {
-              "$ref": "#/definitions/SummaryDividendListModel"
+              "$ref": "#/definitions/SummaryTransactionListModel"
             }
           }
         }
       }
     }
+
 
   },
   "definitions": {
@@ -1060,6 +1061,42 @@
     "SummaryDividendListModel":{
       "type": "array",
       "$ref": "#/definitions/SummaryDividendModel"
+    },
+
+    "SummaryTransactionModel":{
+      "properties": {
+
+        "SUM_BUY_Amount_Baht": {
+          "type": "string",
+          "description": "จำนวนซื้อ"
+        },
+        "SUM_SELL_Amount_Baht": {
+          "type": "string",
+          "description": "จำนวนขาย"
+        },
+        "SUM_SELL_Cost_Amount_Baht": {
+          "type": "string",
+          "description": "ต้นทุน"
+        },
+        "SUM_SELL_RGL": {
+          "type": "string",
+          "description": "กำไรขาดทุน"
+        },
+        "SUM__SELL_RGL_P": {
+          "type": "string",
+          "description": "กำไรขาดทุน (%)"
+        }
+
+      }
+    },
+    "SummaryTransactionListModel":{
+      "type": "array",
+      "$ref": "#/definitions/SummaryTransactionModel"
+    },
+
+    "TrasactionModelV2Model":{
+      "type": "array",
+      "$ref": "#/definitions/SellModel"
     }
 
   }
