@@ -393,7 +393,7 @@
       }
     },
 
-    "/wr/summaryGainLoss/{AccountNo}": {
+    "/wr/summaryGainLossByM/{AccountNo}": {
       "parameters": [
         {
           "name": "AccountNo",
@@ -436,7 +436,7 @@
       }
     },
 
-    "/wr/summaryDividend/{AccountNo}": {
+    "/wr/summaryDividendByM/{AccountNo}": {
       "parameters": [
         {
           "name": "AccountNo",
@@ -479,7 +479,7 @@
       }
     },
 
-    "/wr/summaryUNGainLoss/{AccountNo}": {
+    "/wr/summaryUNGainLossByM/{AccountNo}": {
       "parameters": [
         {
           "name": "AccountNo",

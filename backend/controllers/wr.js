@@ -713,7 +713,7 @@ END;
   })
 }
 
-exports.getSummaryDividend = (req, res, next) => {
+exports.getSummaryDividendByMonth = (req, res, next) => {
 
   var fncName = 'getCustomerInfo';
   var custCode = req.params.cusCode;

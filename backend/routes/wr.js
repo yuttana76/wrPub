@@ -15,9 +15,9 @@ router.get("/transaction/:cusCode",  checkAuth, wrController.getTransaction);
 
 //*********************** V.2 */
 router.get("/summaryGroupByFundType/:cusCode",  checkAuth, wrController.getSummaryGroupByFundType);
-router.get("/summaryGainLoss/:cusCode",  checkAuth, wrController.getSummaryGainLoss);
-router.get("/summaryDividend/:cusCode",  checkAuth, wrController.getSummaryDividend);
-router.get("/summaryUNGainLoss/:cusCode",  checkAuth, wrController.getSummaryUNGainLoss);
+router.get("/summaryGainLossByM/:cusCode",  checkAuth, wrController.getSummaryGainLoss);
+router.get("/summaryDividendByM/:cusCode",  checkAuth, wrController.getSummaryDividendByMonth);
+router.get("/summaryUNGainLossByM/:cusCode",  checkAuth, wrController.getSummaryUNGainLoss);
 
 router.get("/summaryOnSell/:cusCode",  checkAuth, wrController.getSummaryOnSell);
 router.get("/summaryDividend/:cusCode",  checkAuth, wrController.getSummaryDividend);
