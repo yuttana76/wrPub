@@ -1,6 +1,7 @@
 // var Promise = require('bluebird');
 
-const dbConfig = require("./config");
+const dbConfig = require('../config/db-config');
+
 // var sql = require("mssql");
 var config = dbConfig.dbParameters;
 
@@ -99,7 +100,7 @@ exports.getAccountByCustID = (req, res, next) => {
 
 exports.getSummaryByCustID = (req, res, next) => {
 
-  var fncName = 'getCustomerInfo';
+  var fncName = 'getSummaryByCustID';
   var custCode = req.params.cusCode;
 
   logger.info( `API /summaryByCust - ${req.originalUrl} - ${req.ip} -custCode:${custCode}`);
@@ -255,7 +256,6 @@ exports.getFromSell = (req, res, next) => {
     //   code: 'E001',
     //   message: `(fromDate ,fromDate )Fields is required field`
     // });
-
   }
 
   logger.info( `API /onSell - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
@@ -311,7 +311,7 @@ SELECT c.Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Fund_Id,a.Seq_No,a
   , [MFTS_Account] x
   where a.Ref_No=x.Ref_No
   AND a.Status_Id=7
-  AND TranType_Code IN ('S','SO')
+  AND TranType_Code IN ('S','SO','TO')
   AND x.Account_No= @CustID
   AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
 
@@ -476,7 +476,7 @@ exports.getTransaction = (req, res, next) => {
               , [MFTS_Account] x
               where a.Ref_No=x.Ref_No
               --AND a.Status_Id=7
-              AND TranType_Code IN ('S','SO','B','SI','TI')
+              AND TranType_Code IN ('S','SO','TO','B','SI','TI')
               AND x.Account_No= @CustID
               AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
 
@@ -558,7 +558,7 @@ exports.getSummaryGroupByFundType = (req, res, next) => {
   var fncName = 'getCustomerInfo';
   var custCode = req.params.cusCode;
 
-  logger.info( `API /summaryByCust - ${req.originalUrl} - ${req.ip} -custCode:${custCode}`);
+  logger.info( `API /summaryGroupByFundType - ${req.originalUrl} - ${req.ip} -custCode:${custCode}`);
 
   var queryStr = `
   BEGIN
@@ -618,7 +618,7 @@ exports.getSummaryGainLoss = (req, res, next) => {
   var fncName = 'getCustomerInfo';
   var custCode = req.params.cusCode;
 
-  logger.info( `API /summaryByCust - ${req.originalUrl} - ${req.ip} -custCode:${custCode}`);
+  logger.info( `API /summaryGainLossByM - ${req.originalUrl} - ${req.ip} -custCode:${custCode}`);
 
   var queryStr = `
   BEGIN
@@ -718,7 +718,7 @@ exports.getSummaryDividendByMonth = (req, res, next) => {
   var fncName = 'getCustomerInfo';
   var custCode = req.params.cusCode;
 
-  logger.info( `API /summaryByCust - ${req.originalUrl} - ${req.ip} -custCode:${custCode}`);
+  logger.info( `API /summaryDividendByM - ${req.originalUrl} - ${req.ip} -custCode:${custCode}`);
 
   var queryStr = `
   BEGIN
@@ -815,7 +815,7 @@ exports.getSummaryUNGainLoss = (req, res, next) => {
   var fncName = 'getCustomerInfo';
   var custCode = req.params.cusCode;
 
-  logger.info( `API /summaryByCust - ${req.originalUrl} - ${req.ip} -custCode:${custCode}`);
+  logger.info( `API /summaryUNGainLossByM - ${req.originalUrl} - ${req.ip} -custCode:${custCode}`);
 
   var queryStr = `
   BEGIN
@@ -947,7 +947,7 @@ exports.getSummaryOnSell = (req, res, next) => {
     // });
   }
 
-  logger.info( `API /onSell - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
+  logger.info( `API /summaryOnSell - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
   var queryStr = `
   BEGIN
@@ -1077,7 +1077,7 @@ exports.getSummaryDividend = (req, res, next) => {
     // });
   }
 
-  logger.info( `API /onSell - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
+  logger.info( `API /summaryDividend - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
   var queryStr = `
   BEGIN
@@ -1140,7 +1140,7 @@ exports.getSummaryTransaction = (req, res, next) => {
     // });
   }
 
-  logger.info( `API /onSell - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
+  logger.info( `API /summaryTransaction - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
   var queryStr = `
   BEGIN
@@ -1169,8 +1169,8 @@ exports.getSummaryTransaction = (req, res, next) => {
       LEFT JOIN   [MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
     , [MFTS_Account] x
     where a.Ref_No=x.Ref_No
---  AND a.TranType_Code IN ('S','SO','B','SI','TI')
-    AND a.TranType_Code IN ('S','SO')
+--  AND a.TranType_Code IN ('S','SO','TO','B','SI','TI')
+    AND a.TranType_Code IN ('S','SO','TO')
             AND a.Status_Id=7
     AND x.Account_No= @CustID
     AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
