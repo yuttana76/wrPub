@@ -930,25 +930,25 @@
 
     "SummaryGLossModel":{
       "properties": {
-        "M1": {
+        "GL_M1": {
           "type": "string",
           "description": " 1 Month"
         },
-        "M3": {
+        "GL_M3": {
           "type": "string",
           "description": " 3 Months"
         },
-        "M6": {
+        "GL_M6": {
           "type": "string",
           "description": " 6 Months"
         },
-        "YR1": {
+        "GL_YTD": {
           "type": "string",
-          "description": " 1 Year"
+          "description": " Begin year to current date"
         },
-        "BYear": {
+        "GL_365": {
           "type": "string",
-          "description": " Begin year"
+          "description": " -365"
         }
       }
     },
@@ -971,13 +971,13 @@
           "type": "string",
           "description": " 6 Months"
         },
-        "DIV_YR1": {
+        "UNGL_YTD": {
           "type": "string",
-          "description": " 1 Year"
+          "description": " Begin year to current date"
         },
-        "DIV_BYear": {
+        "UNGL_365": {
           "type": "string",
-          "description": " Begin year"
+          "description": " -365"
         }
       }
     },
@@ -1000,13 +1000,13 @@
           "type": "string",
           "description": " 6 Months"
         },
-        "UNGL_YR1": {
+        "UNGL_YTD": {
           "type": "string",
-          "description": " 1 Year"
+          "description": " Begin year to current date"
         },
-        "UNGL_BYear": {
+        "UNGL_365": {
           "type": "string",
-          "description": " Begin year"
+          "description": " -365"
         }
       }
     },

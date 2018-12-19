@@ -622,24 +622,27 @@ exports.getSummaryGainLoss = (req, res, next) => {
 
   var queryStr = `
   BEGIN
+
   DECLARE @CustID VARCHAR(20) ='${custCode}';
   DECLARE @firstDate date;
   DECLARE @1month date;
   DECLARE @3month date;
   DECLARE @6month date;
-  DECLARE @1year date;
+--   DECLARE @1year date;
+  DECLARE @365Day date;
 
   -- First day
 SELECT   @firstDate = DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0)
-select @1month = DateAdd(month,1, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0) )
-select @3month = DateAdd(month,3, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0) )
-select @6month= DateAdd(month,6, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0) )
-select @1year = DateAdd(year,-1, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0) )
+select @1month = DateAdd(month,1, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), -1) )
+select @3month = DateAdd(month,3, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), -1) )
+select @6month= DateAdd(month,6, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), -1) )
+-- select @1year = DateAdd(year,-1, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0) )
+select @365Day = DATEADD(d, -365, GETDATE())
 
 -- select @firstDate,@1month,@3month,@6month,@1year
 SELECT *
 FROM
-  (SELECT ISNULL(SUM(a.RGL),0) M1
+  (SELECT ISNULL(SUM(a.RGL),0) GL_M1
       FROM [MFTS_Transaction] a
     , [MFTS_Account] x
     where a.Ref_No=x.Ref_No
@@ -648,7 +651,7 @@ FROM
     AND x.Account_No= @CustID
     AND ExecuteDate BETWEEN @firstDate AND @1month) M1,
 
-  (SELECT ISNULL(SUM(a.RGL),0) M3
+  (SELECT ISNULL(SUM(a.RGL),0) GL_M3
       FROM [MFTS_Transaction] a
     , [MFTS_Account] x
     where a.Ref_No=x.Ref_No
@@ -657,7 +660,7 @@ FROM
     AND x.Account_No= @CustID
     AND ExecuteDate BETWEEN @firstDate AND @3month) M3,
 
-  (SELECT ISNULL(SUM(a.RGL),0) AS M6
+  (SELECT ISNULL(SUM(a.RGL),0) AS GL_M6
       FROM [MFTS_Transaction] a
     , [MFTS_Account] x
     where a.Ref_No=x.Ref_No
@@ -666,25 +669,25 @@ FROM
     AND x.Account_No= @CustID
     AND ExecuteDate BETWEEN @firstDate AND @6month) M6,
 
---      -- 1 Year
-  (SELECT ISNULL(SUM(a.RGL),0) AS YR1
+-- --      YTD
+  (SELECT ISNULL(SUM(a.RGL),0) AS GL_YTD
       FROM [MFTS_Transaction] a
     , [MFTS_Account] x
     where a.Ref_No=x.Ref_No
     AND a.Status_Id=7
     AND TranType_Code IN ('S','SO')
     AND x.Account_No= @CustID
-    AND ExecuteDate BETWEEN @1year AND GETDATE()) Y1,
+    AND ExecuteDate BETWEEN @firstDate AND GETDATE()) Y1,
 
---      -- BEGIN Year
-  (SELECT ISNULL(SUM(a.RGL),0) AS BYear
+-- --      365
+  (SELECT ISNULL(SUM(a.RGL),0) AS GL_365
       FROM [MFTS_Transaction] a
     , [MFTS_Account] x
     where a.Ref_No=x.Ref_No
     AND a.Status_Id=7
     AND TranType_Code IN ('S','SO')
     AND x.Account_No= @CustID
-    AND ExecuteDate BETWEEN @firstDate AND GETDATE()) BYear
+    AND ExecuteDate BETWEEN @365Day AND GETDATE()) BYear
 END;
   `;
 
@@ -727,16 +730,26 @@ exports.getSummaryDividendByMonth = (req, res, next) => {
   DECLARE @1month date;
   DECLARE @3month date;
   DECLARE @6month date;
-  DECLARE @1year date;
+--   DECLARE @1year date;
+  DECLARE @365Day date;
 
   -- First day
-SELECT   @firstDate = DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0)
-select @1month = DateAdd(month,1, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0) )
-select @3month = DateAdd(month,3, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0) )
-select @6month= DateAdd(month,6, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0) )
-select @1year = DateAdd(year,-1, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0) )
 
--- select @firstDate,@1month,@3month,@6month,@1year
+select @1month = DateAdd(month,1, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), -1) )
+select @3month = DateAdd(month,3, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), -1) )
+select @6month= DateAdd(month,6, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), -1) )
+SELECT   @firstDate = DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0)
+-- select @1year = DateAdd(year,-1, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0) )
+select @365Day = DATEADD(d, -365, GETDATE())
+
+PRINT  ' 1M:' + RTRIM(CAST(@1month AS nvarchar(30)))
+            + ' ;3M:' + RTRIM(CAST(@3month AS nvarchar(30)))
+            + ' ;6M:' + RTRIM(CAST(@6month AS nvarchar(30)))
+            -- + ' ;@1year:' + RTRIM(CAST(@1year AS nvarchar(30)))
+            + ' ;@firstDate:' + RTRIM(CAST(@firstDate AS nvarchar(30)))
+            + ' ;@365Day:' + RTRIM(CAST(@365Day AS nvarchar(30)))
+
+
 SELECT *
 FROM
  (SELECT SUM(a.DivPerUnit * a.Unit) AS DIV_M1
@@ -763,23 +776,23 @@ FROM
     AND x.Account_No= @CustID
     AND XD_DATE BETWEEN @firstDate AND @6month) M6,
 
--- --      -- 1 Year
- (SELECT SUM(a.DivPerUnit * a.Unit) AS DIV_YR1
+-- --      YTD
+ (SELECT SUM(a.DivPerUnit * a.Unit) AS DIV_YTD
     FROM [MFTS_Dividend] a
     LEFT JOIN   [MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
     , [MFTS_Account] x
     WHERE a.Ref_No=x.Ref_No
     AND x.Account_No= @CustID
-    AND XD_DATE BETWEEN @1year AND GETDATE()) Y1,
+    AND XD_DATE BETWEEN @firstDate AND GETDATE()) YTD,
 
--- --      -- BEGIN Year
- (SELECT SUM(a.DivPerUnit * a.Unit) AS DIV_BYear
+-- --      365
+ (SELECT SUM(a.DivPerUnit * a.Unit) AS DIV_365
     FROM [MFTS_Dividend] a
     LEFT JOIN   [MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
     , [MFTS_Account] x
     WHERE a.Ref_No=x.Ref_No
     AND x.Account_No= @CustID
-    AND XD_DATE BETWEEN @firstDate AND GETDATE()) BYear
+    AND XD_DATE BETWEEN @365Day AND GETDATE()) D365
 
 END;
   `;
@@ -828,9 +841,9 @@ exports.getSummaryUNGainLoss = (req, res, next) => {
 
   -- First day
 SELECT   @firstDate = DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0)
-select @1month = DateAdd(month,1, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0) )
-select @3month = DateAdd(month,3, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0) )
-select @6month= DateAdd(month,6, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0) )
+select @1month = DateAdd(month,1, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), -1) )
+select @3month = DateAdd(month,3, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), -1) )
+select @6month= DateAdd(month,6, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), -1) )
 select @1year = DateAdd(year,-1, DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0) )
 
 SELECT *
@@ -843,7 +856,7 @@ FROM
     LEFT JOIN  [MFTS_Amc] c ON a.AMCID = c.Amc_Id
     WHERE  Status ='A'
     AND CustID= @CustID
-    AND DataDate BETWEEN @firstDate AND @1month
+    AND DataDate = @1month
   GROUP BY b.FGroup_Code
   ) a ) aa,
 
@@ -855,7 +868,7 @@ FROM
     LEFT JOIN  [MFTS_Amc] c ON a.AMCID = c.Amc_Id
     WHERE  Status ='A'
     AND CustID= @CustID
-    AND DataDate BETWEEN @firstDate AND @3month
+    AND DataDate = @3month
   GROUP BY b.FGroup_Code
   ) a ) bb,
 
@@ -867,12 +880,12 @@ FROM
     LEFT JOIN  [MFTS_Amc] c ON a.AMCID = c.Amc_Id
     WHERE  Status ='A'
     AND CustID= @CustID
-    AND DataDate BETWEEN @firstDate AND @6month
+    AND DataDate = @6month
   GROUP BY b.FGroup_Code
   ) a ) cc,
 
--- --      -- 1 Year
-(SELECT SUM( a.TOTAL_COST-a.AVG_COST) AS UNGL_YR1
+-- --      -- YTD
+(SELECT SUM( a.TOTAL_COST-a.AVG_COST) AS UNGL_YTD
   FROM
   (SELECT b.FGroup_Code AS FUND_TYPE,SUM(AvgCost) AS AVG_COST,SUM(MarketValue) AS TOTAL_COST
     FROM [IT_CustPortValueEndDay] a
@@ -880,22 +893,13 @@ FROM
     LEFT JOIN  [MFTS_Amc] c ON a.AMCID = c.Amc_Id
     WHERE  Status ='A'
     AND CustID= @CustID
-    AND DataDate BETWEEN @1year AND GETDATE()
+    AND DataDate = (SELECT MAX(DataDate) from IT_CustPortValueEndDay where Status ='A' AND CustID= @CustID)
   GROUP BY b.FGroup_Code
   ) a ) dd,
 
-  -- --      -- BEGIN Year
-  (SELECT SUM( a.TOTAL_COST-a.AVG_COST) AS UNGL_BYear
-  FROM
-  (SELECT b.FGroup_Code AS FUND_TYPE,SUM(AvgCost) AS AVG_COST,SUM(MarketValue) AS TOTAL_COST
-    FROM [IT_CustPortValueEndDay] a
-    LEFT JOIN   [MFTS_Fund] b ON a.FundID = b.Fund_Id
-    LEFT JOIN  [MFTS_Amc] c ON a.AMCID = c.Amc_Id
-    WHERE  Status ='A'
-    AND CustID= @CustID
-    AND DataDate BETWEEN @firstDate AND GETDATE()
-  GROUP BY b.FGroup_Code
-  ) a ) ee
+  -- --      -- (-365)
+  (SELECT 0 AS UNGL_365) ee
+
 
 END;
   `;
