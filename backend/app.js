@@ -13,7 +13,7 @@ const wrRoutes = require('./routes/wr');
 
 // const connexRoutes = require('./routes/connex');
 // const fundRoutes = require('./routes/fund');
-// const utilityRoutes = require('./routes/utility');
+const utilityRoutes = require('./routes/utility');
 // const amcRoutes = require('./routes/amc');
 // const transRoutes = require('./routes/transaction');
 
