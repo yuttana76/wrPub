@@ -22,7 +22,7 @@ exports.autoGeneratePassword = (req,res,next)=>{
     .then(hash =>{
 
         var queryStr = `
-          UPDATE MIT_USERS SET PASSWD='${hash}'
+          UPDATE [dbo].[MIT_USERS] SET PASSWD='${hash}'
           WHERE MIT_GROUP='C1'
         `;
 
