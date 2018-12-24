@@ -94,7 +94,7 @@ app.use("/api/wr",wrRoutes);
 
 // app.use("/api/mail",mailRoutes);
 
-// app.use("/api/util",utilityRoutes);
+app.use("/api/util",utilityRoutes);
 
 app.use((req, res, next) => {
   res.sendFile(path.join(__dirname, "angular", "index.html"));
