@@ -201,6 +201,7 @@ exports.getDividendByCustID = (req, res, next) => {
     ,a.XD_Date
     ,a.DivPerUnit,a.Unit
     ,a.DivPerUnit * a.Unit AS VAL
+    ,a.Tax_Amount AS Tax_Amount
     ,(a.DivPerUnit * a.Unit) - a.Tax_Amount AS NET_VAL
     FROM [MFTS_Dividend] a
     LEFT JOIN   [MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
