@@ -168,13 +168,13 @@ exports.resetPassword = (req,res,next)=>{
           sql.close();
             if(err){
               res.status(500).json({
-                error:err
+                errMsg:err
               });
 
             } else {
               res.status(200).json({
-                message: 'User updated',
-                result: result
+                message: "Password updated"
+                // result: result
               });
             }
 
@@ -186,8 +186,8 @@ exports.resetPassword = (req,res,next)=>{
         logger.error( `API /register - ${err}`);
 
         sql.close();
-        res.status(500).json({
-          error:err
+        res.status(401).json({
+          message:err
         });
       });
   });

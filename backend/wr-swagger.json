@@ -58,6 +58,83 @@
         }
       }
     },
+
+
+    "/user/resetPassword": {
+      "post": {
+        "tags": [
+          "WR-API"
+        ],
+        "summary": "Reset password",
+        "description": "Reset password",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "description": " User name & password ",
+            "schema": {
+              "$ref": "#/definitions/ResetPWDModel"
+            }
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Password updated"
+          },
+          "500": {
+            "description": "errMsg:err"
+          }
+        }
+      }
+    },
+
+
+    "/wr/custInfo/{userId}": {
+      "parameters": [
+        {
+          "name": "userId",
+          "in": "path",
+          "required": true,
+          "description": "ID of user that we want to find",
+          "type": "string"
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "description": "Token id you got from login API (Bearer token)",
+          "type": "string"
+        }
+      ],
+      "get": {
+        "tags": [
+          "WR-API"
+        ],
+        "summary": "Get customer info with given user",
+        "description": "แสดงข้อมูลทั่วไป ของลูกค้า",
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "type": "object",
+            "properties":{
+              "message":{
+                "type":"string"
+              }
+            }
+          },
+          "200": {
+            "description": "Data was found",
+            "schema": {
+              "$ref": "#/definitions/custInfoListModel"
+            }
+          }
+        }
+      }
+    },
+
     "/wr/account/{userId}": {
       "parameters": [
         {
@@ -635,10 +712,9 @@
         }
       }
     }
-
-
   },
   "definitions": {
+
     "LoginModel":{
       "required": [
         "email",
@@ -653,8 +729,24 @@
           "type":"string"
         }
       }
-
     },
+
+    "ResetPWDModel":{
+        "required": [
+          "LoginName",
+          "password"
+        ],
+        "properties":{
+          "LoginName":{
+            "type":"string",
+            "uniqueItems": true
+          },
+          "password":{
+            "type":"string"
+          }
+        }
+      },
+
     "User": {
       "properties": {
         "token": {
@@ -1097,6 +1189,60 @@
     "TrasactionModelV2Model":{
       "type": "array",
       "$ref": "#/definitions/SellModel"
+    },
+
+    "custInfoModel":{
+      "properties": {
+
+        "Cust_Code": {
+          "type": "string",
+          "description": "Account number"
+            },
+            "Title_Name_T": {
+              "type": "string",
+              "description": "คำนำหน้า"
+                },
+            "First_Name_T": {
+              "type": "string",
+              "description": "ชื่อ"
+                },
+            "Last_Name_T": {
+              "type": "string",
+              "description": "นามสกุล"
+                },
+            "Title_Name_E": {
+              "type": "string",
+              "description": "คำนำหน้า (ENG)"
+                },
+            "First_Name_E": {
+              "type": "string",
+              "description": "ชื่อ (ENG)"
+                },
+            "Last_Name_E": {
+              "type": "string",
+              "description": "นามสกุล (ENG)"
+                },
+            "riskDate": {
+              "type": "string",
+              "description": "วันที่ประเมินความเสี่ยง"
+                },
+            "riskScore": {
+              "type": "string",
+              "description": "คะแนนประเมินความเสี่ยง"
+                },
+            "riskLevel": {
+              "type": "string",
+              "description": "ระดับการประเมินความเสี่ยง"
+                },
+            "riskDesc": {
+              "type": "string",
+              "description": "คำอธิบาย การประเมินความเสี่ยง"
+                }
+      }
+    },
+    "custInfoListModel":{
+      "type": "array",
+      "$ref": "#/definitions/custInfoModel"
     }
 
   }
