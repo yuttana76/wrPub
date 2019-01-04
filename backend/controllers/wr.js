@@ -30,8 +30,14 @@ exports.getCustomerInfo = (req, res, next) => {
       ,[Title_Name_E]
       ,[First_Name_E]
       ,[Last_Name_E]
+      ,convert(varchar, b.Document_Date, 111) AS riskDate
+      ,b.Score AS riskScore
+      ,b.Risk_Level AS riskLevel
+      ,b.Risk_Level_Desc AS riskDesc
     FROM [MIT_Account_Profile]
-    WHERE Cust_Code='${custCode}'`;
+    LEFT JOIN  MFTS_Suit b ON b.Account_No = CUST_CODE AND b.Active_Flag='A'
+    WHERE Cust_Code='${custCode}'
+    `;
 
     const sql = require('mssql')
     const pool1 = new sql.ConnectionPool(config, err => {
