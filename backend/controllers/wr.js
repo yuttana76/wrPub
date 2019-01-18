@@ -276,6 +276,7 @@ DECLARE @Fund_Id   int;
 DECLARE @Seq_No   int;
 DECLARE @Fund_Code [varchar](30);
 DECLARE @TranType_Code [varchar](2);
+DECLARE @TranType_Date [datetime];
 DECLARE @Ref_NO   [varchar](15);
 DECLARE @ExecuteDate  [datetime];
 DECLARE @Amount_Baht   [decimal](18, 2)=0;
@@ -293,6 +294,7 @@ declare @temp table(
    ,FGroup_Code [varchar](15)
    ,Fund_Code [varchar](30)
    ,TranType_Code [varchar](2)
+   ,Tran_Date [datetime]
    ,Ref_No [varchar](12)
    ,ExecuteDate [datetime]
    ,Amount_Baht [numeric](18, 2)
@@ -305,7 +307,7 @@ declare @temp table(
 )
 
 DECLARE MFTS_Transaction_cursor CURSOR LOCAL  FOR
-SELECT c.Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Fund_Id,a.Seq_No,a.Ref_No,a.ExecuteDate
+SELECT c.Amc_CODE AS Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Tran_Date,a.Fund_Id,a.Seq_No,a.Ref_No,a.ExecuteDate
 ,a.Amount_Baht
 ,a.Amount_Unit
 ,a.Nav_Price
@@ -323,7 +325,7 @@ SELECT c.Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Fund_Id,a.Seq_No,a
   AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
 
   OPEN MFTS_Transaction_cursor
-    FETCH NEXT FROM MFTS_Transaction_cursor INTO @Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Fund_Id,@Seq_No,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
+    FETCH NEXT FROM MFTS_Transaction_cursor INTO @Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@TranType_Date,@Fund_Id,@Seq_No,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
 
           WHILE @@FETCH_STATUS = 0
           BEGIN
@@ -348,9 +350,10 @@ SELECT c.Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Fund_Id,a.Seq_No,a
               END
 
               INSERT INTO @temp
-                 SELECT @Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,(@RGL/@Cost_Amount_Baht)*100
+                 SELECT @Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@TranType_Date,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,(@RGL/@Cost_Amount_Baht)*100
 
-                 FETCH NEXT FROM MFTS_Transaction_cursor INTO @Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Fund_Id,@Seq_No,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
+                 FETCH NEXT FROM MFTS_Transaction_cursor INTO @Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@TranType_Date,@Fund_Id,@Seq_No,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
+
 
           END
 
