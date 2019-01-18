@@ -200,17 +200,20 @@ exports.getDividendByCustID = (req, res, next) => {
     BEGIN
     DECLARE @CustID VARCHAR(20) = '${custCode}';
     SELECT x.Account_No
-    ,x.Amc_id
+    ,c.Amc_Code AS Amc_Name
     ,x.Holder_id
     ,b.Fund_Code
     ,b.FGroup_Code
     ,a.XD_Date
-    ,a.DivPerUnit,a.Unit
+    ,a.Payment_Date
+    ,a.DivPerUnit
+    ,a.Unit
     ,a.DivPerUnit * a.Unit AS VAL
     ,a.Tax_Amount AS Tax_Amount
     ,(a.DivPerUnit * a.Unit) - a.Tax_Amount AS NET_VAL
     FROM [MFTS_Dividend] a
     LEFT JOIN   [MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
+    LEFT JOIN   MFTS_Amc c ON b.Amc_Id=c.Amc_Id
     , [MFTS_Account] x
     WHERE a.Ref_No=x.Ref_No
     AND x.Account_No= @CustID
