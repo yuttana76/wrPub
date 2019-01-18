@@ -470,7 +470,7 @@ exports.getTransaction = (req, res, next) => {
             )
 
             DECLARE MFTS_Transaction_cursor CURSOR LOCAL  FOR
-            SELECT c.Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Fund_Id,a.Seq_No,a.Ref_No,a.Tran_Date
+            SELECT c.Amc_CODE AS Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Fund_Id,a.Seq_No,a.Ref_No,a.Tran_Date
             ,a.Amount_Baht
             ,a.Amount_Unit
             ,a.Nav_Price
