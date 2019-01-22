@@ -1,5 +1,5 @@
 exports.loginMsg = {
-  "000": "Login สำเร็จ	Logn successful",
+  "000": "Login สำเร็จ Logn successful",
   "001": "Update สำเร็จ",
   "101": "Login ไม่สำเร็จ  Auth failed",
   "102": "ระบบล็อค กรุณาทำการเปลี่ยนรหัสผ่านใหม่ และ login อีกครั้ง User lock cause login fail serveral time",
