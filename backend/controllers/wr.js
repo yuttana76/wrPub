@@ -183,19 +183,33 @@ exports.getDividendByCustID = (req, res, next) => {
   var fromDate = req.query.fromDate || '';
   var toDate = req.query.toDate || '';
 
-  if (fromDate =='' || toDate ==''){
-
+  if (fromDate ==='' ){
     var currentTime = new Date()
     var year = currentTime.getFullYear()
-    //  year-mm-dd
     fromDate = `${year}-01-01`;
-    toDate = `${year}-12-31`;
-
-    // res.status(422).json({
-    //   code: 'E001',
-    //   message: `(fromDate ,fromDate )Fields is required field`
-    // });
+    console.log('*** Setting fromDate '+ fromDate);
   }
+
+  if (toDate ===''){
+    var currentTime = new Date()
+    var year = currentTime.getFullYear()
+    toDate = `${year}-12-31`;
+    console.log('*** Setting toDate '+toDate);
+  }
+
+  // if (fromDate =='' || toDate ==''){
+
+  //   var currentTime = new Date()
+  //   var year = currentTime.getFullYear()
+  //   //  year-mm-dd
+  //   fromDate = `${year}-01-01`;
+  //   toDate = `${year}-12-31`;
+
+  //   // res.status(422).json({
+  //   //   code: 'E001',
+  //   //   message: `(fromDate ,fromDate )Fields is required field`
+  //   // });
+  // }
 
   logger.info( `API /dividend - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
@@ -204,9 +218,12 @@ exports.getDividendByCustID = (req, res, next) => {
     DECLARE @CustID VARCHAR(20) = '${custCode}';
     SELECT x.Account_No
     ,c.Amc_Code AS Amc_Name
+    ,c.amc_name_e AS amcNameE
     ,x.Holder_id
     ,b.Fund_Code
     ,b.FGroup_Code
+    ,b.Thai_Name AS fundNameT
+    ,b.Eng_Name AS fundNameE
     ,a.XD_Date
     ,a.Payment_Date
     ,a.DivPerUnit
@@ -271,14 +288,14 @@ exports.getFromSell = (req, res, next) => {
     var currentTime = new Date()
     var year = currentTime.getFullYear()
     fromDate = `${year}-01-01`;
-    console.log('*** Setting fromDate '+ fromDate);
+    // console.log('*** Setting fromDate '+ fromDate);
   }
 
   if (toDate ===''){
     var currentTime = new Date()
     var year = currentTime.getFullYear()
     toDate = `${year}-12-31`;
-    console.log('*** Setting toDate '+toDate);
+    // console.log('*** Setting toDate '+toDate);
   }
 
 
