@@ -125,8 +125,11 @@ ORDER BY DataDate;
 SELECT [CustID]
       ,c.Amc_Code
       ,c.Amc_Name
+      ,c.amc_name_e AS amcNameE
       ,b.Fund_Code
       ,b.FGroup_Code
+      ,b.Thai_Name AS fundNameT
+      ,b.Eng_Name AS fundNameE
       ,[BalanceUnit]
       ,[AvgCostUnit]
       ,[AvgCost]
@@ -254,46 +257,63 @@ exports.getFromSell = (req, res, next) => {
   var fromDate = req.query.fromDate || '';
   var toDate = req.query.toDate || '';
 
-  if (fromDate =='' || toDate ==''){
+  // if (fromDate =='' || toDate ==''){
 
+  //   var currentTime = new Date()
+  //   var year = currentTime.getFullYear()
+  //   //  year-mm-dd
+  //   fromDate = `${year}-01-01`;
+  //   toDate = `${year}-12-31`;
+  // }
+
+
+  if (fromDate ==='' ){
     var currentTime = new Date()
     var year = currentTime.getFullYear()
-    //  year-mm-dd
     fromDate = `${year}-01-01`;
-    toDate = `${year}-12-31`;
-
-    // res.status(422).json({
-    //   code: 'E001',
-    //   message: `(fromDate ,fromDate )Fields is required field`
-    // });
+    console.log('*** Setting fromDate '+ fromDate);
   }
+
+  if (toDate ===''){
+    var currentTime = new Date()
+    var year = currentTime.getFullYear()
+    toDate = `${year}-12-31`;
+    console.log('*** Setting toDate '+toDate);
+  }
+
 
   logger.info( `API /onSell - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
   var queryStr =  `BEGIN
   DECLARE @CustID VARCHAR(20) ='${custCode}';
 
-DECLARE @Amc_Name   [varchar](200);
-DECLARE @FGroup_Code   [varchar](15);
-DECLARE @Fund_Id   int;
-DECLARE @Seq_No   int;
-DECLARE @Fund_Code [varchar](30);
-DECLARE @TranType_Code [varchar](2);
-DECLARE @TranType_Date [datetime];
-DECLARE @Ref_NO   [varchar](15);
-DECLARE @ExecuteDate  [datetime];
-DECLARE @Amount_Baht   [decimal](18, 2)=0;
-DECLARE @SUM_Amount_Baht   [decimal](18, 2)=0;
-DECLARE @Amount_Unit   [decimal](18, 4)=0;
-DECLARE @Nav_Price [numeric](18, 4);
-DECLARE @Cost_Amount_Baht   [decimal](18, 2)=0;
-DECLARE @SUM_Cost_Amount_Baht   [decimal](30, 2)=0;
-DECLARE @RGL   [decimal](20, 6)=0 ;
-DECLARE @SUM_RGL   [decimal](20, 6);
-DECLARE @Avg_Cost [decimal](18, 2)=0;
+  DECLARE @amcNameE   [varchar](200);
+  DECLARE @fundNameT   [varchar](200);
+  DECLARE @fundNameE   [varchar](200);
+  DECLARE @Amc_Name   [varchar](200);
+  DECLARE @FGroup_Code   [varchar](15);
+  DECLARE @Fund_Id   int;
+  DECLARE @Seq_No   int;
+  DECLARE @Fund_Code [varchar](30);
+  DECLARE @TranType_Code [varchar](2);
+  DECLARE @TranType_Date [datetime];
+  DECLARE @Ref_NO   [varchar](15);
+  DECLARE @ExecuteDate  [datetime];
+  DECLARE @Amount_Baht   [decimal](18, 2)=0;
+  DECLARE @SUM_Amount_Baht   [decimal](18, 2)=0;
+  DECLARE @Amount_Unit   [decimal](18, 4)=0;
+  DECLARE @Nav_Price [numeric](18, 4);
+  DECLARE @Cost_Amount_Baht   [decimal](18, 2)=0;
+  DECLARE @SUM_Cost_Amount_Baht   [decimal](30, 2)=0;
+  DECLARE @RGL   [decimal](20, 6)=0 ;
+  DECLARE @SUM_RGL   [decimal](20, 6);
+  DECLARE @Avg_Cost [decimal](18, 2)=0;
 
 declare @temp table(
-   Amc_Name[varchar](200)
+    amcNameE [varchar](200)
+    ,fundNameT [varchar](200)
+    ,fundNameE [varchar](200)
+   ,Amc_Name[varchar](200)
    ,FGroup_Code [varchar](15)
    ,Fund_Code [varchar](30)
    ,TranType_Code [varchar](2)
@@ -310,7 +330,11 @@ declare @temp table(
 )
 
 DECLARE MFTS_Transaction_cursor CURSOR LOCAL  FOR
-SELECT c.Amc_CODE AS Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Tran_Date,a.Fund_Id,a.Seq_No,a.Ref_No,a.ExecuteDate
+SELECT
+c.amc_name_e AS amcNameE
+,b.Thai_Name AS fundNameT
+,b.Eng_Name AS fundNameE
+,c.Amc_CODE AS Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Tran_Date,a.Fund_Id,a.Seq_No,a.Ref_No,a.ExecuteDate
 ,a.Amount_Baht
 ,a.Amount_Unit
 ,a.Nav_Price
@@ -328,7 +352,7 @@ SELECT c.Amc_CODE AS Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Tran_D
   AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
 
   OPEN MFTS_Transaction_cursor
-    FETCH NEXT FROM MFTS_Transaction_cursor INTO @Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@TranType_Date,@Fund_Id,@Seq_No,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
+    FETCH NEXT FROM MFTS_Transaction_cursor INTO @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@TranType_Date,@Fund_Id,@Seq_No,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
 
           WHILE @@FETCH_STATUS = 0
           BEGIN
@@ -353,10 +377,9 @@ SELECT c.Amc_CODE AS Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Tran_D
               END
 
               INSERT INTO @temp
-                 SELECT @Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@TranType_Date,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,(@RGL/@Cost_Amount_Baht)*100
+                 SELECT @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@TranType_Date,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,(@RGL/@Cost_Amount_Baht)*100
 
-                 FETCH NEXT FROM MFTS_Transaction_cursor INTO @Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@TranType_Date,@Fund_Id,@Seq_No,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
-
+                 FETCH NEXT FROM MFTS_Transaction_cursor INTO @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@TranType_Date,@Fund_Id,@Seq_No,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
 
           END
 
@@ -1054,21 +1077,17 @@ exports.getSummaryOnSell = (req, res, next) => {
   var toDate = req.query.toDate || '';
 
   if (fromDate ==='' ){
-
     var currentTime = new Date()
     var year = currentTime.getFullYear()
     fromDate = `${year}-01-01`;
-    // toDate = `${year}-12-31`;
-    console.log('*** Setting fromDate '+ fromDate);
+    // console.log('*** Setting fromDate '+ fromDate);
   }
 
   if (toDate ===''){
-
     var currentTime = new Date()
     var year = currentTime.getFullYear()
-    // fromDate = `${year}-01-01`;
     toDate = `${year}-12-31`;
-    console.log('*** Setting toDate '+toDate);
+    // console.log('*** Setting toDate '+toDate);
   }
 
 
