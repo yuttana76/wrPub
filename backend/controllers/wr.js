@@ -1053,19 +1053,24 @@ exports.getSummaryOnSell = (req, res, next) => {
   var fromDate = req.query.fromDate || '';
   var toDate = req.query.toDate || '';
 
-  if (fromDate =='' || toDate ==''){
+  if (fromDate ==='' ){
 
     var currentTime = new Date()
     var year = currentTime.getFullYear()
-    //  year-mm-dd
     fromDate = `${year}-01-01`;
-    toDate = `${year}-12-31`;
-
-    // res.status(422).json({
-    //   code: 'E001',
-    //   message: `(fromDate ,fromDate )Fields is required field`
-    // });
+    // toDate = `${year}-12-31`;
+    console.log('*** Setting fromDate '+ fromDate);
   }
+
+  if (toDate ===''){
+
+    var currentTime = new Date()
+    var year = currentTime.getFullYear()
+    // fromDate = `${year}-01-01`;
+    toDate = `${year}-12-31`;
+    console.log('*** Setting toDate '+toDate);
+  }
+
 
   logger.info( `API /summaryOnSell - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
