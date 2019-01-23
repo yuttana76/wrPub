@@ -197,19 +197,6 @@ exports.getDividendByCustID = (req, res, next) => {
     console.log('*** Setting toDate '+toDate);
   }
 
-  // if (fromDate =='' || toDate ==''){
-
-  //   var currentTime = new Date()
-  //   var year = currentTime.getFullYear()
-  //   //  year-mm-dd
-  //   fromDate = `${year}-01-01`;
-  //   toDate = `${year}-12-31`;
-
-  //   // res.status(422).json({
-  //   //   code: 'E001',
-  //   //   message: `(fromDate ,fromDate )Fields is required field`
-  //   // });
-  // }
 
   logger.info( `API /dividend - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
@@ -460,25 +447,31 @@ exports.getTransaction = (req, res, next) => {
   var fromDate = req.query.fromDate || '';
   var toDate = req.query.toDate || '';
 
-  if (fromDate =='' || toDate ==''){
 
+  if (fromDate ==='' ){
     var currentTime = new Date()
     var year = currentTime.getFullYear()
-    //  year-mm-dd
     fromDate = `${year}-01-01`;
-    toDate = `${year}-12-31`;
-
-    // res.status(422).json({
-    //   code: 'E001',
-    //   message: `(fromDate ,fromDate )Fields is required field`
-    // });
+    console.log('*** Setting fromDate '+ fromDate);
   }
+
+  if (toDate ===''){
+    var currentTime = new Date()
+    var year = currentTime.getFullYear()
+    toDate = `${year}-12-31`;
+    console.log('*** Setting toDate '+toDate);
+  }
+
 
   logger.info( `API /transaction - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
   var queryStr = `
             BEGIN
             DECLARE @CustID VARCHAR(20) = '${custCode}';
+
+            DECLARE @amcNameE   [varchar](200);
+            DECLARE @fundNameT   [varchar](200);
+            DECLARE @fundNameE   [varchar](200);
 
             DECLARE @Amc_Name   [varchar](200);
             DECLARE @FGroup_Code   [varchar](15);
@@ -500,7 +493,10 @@ exports.getTransaction = (req, res, next) => {
             DECLARE @Avg_Cost [decimal](18, 2)=0;
 
             declare @temp table(
-              Amc_Name[varchar](200)
+              amcNameE [varchar](200)
+              ,fundNameT [varchar](200)
+              ,fundNameE [varchar](200)
+              ,Amc_Name[varchar](200)
               ,FGroup_Code [varchar](15)
               ,Fund_Code [varchar](30)
               ,TranType_Code [varchar](2)
@@ -516,7 +512,11 @@ exports.getTransaction = (req, res, next) => {
             )
 
             DECLARE MFTS_Transaction_cursor CURSOR LOCAL  FOR
-            SELECT c.Amc_CODE AS Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Fund_Id,a.Seq_No,a.Ref_No,a.Tran_Date
+            SELECT
+            c.amc_name_e AS amcNameE
+            ,b.Thai_Name AS fundNameT
+            ,b.Eng_Name AS fundNameE
+            ,c.Amc_CODE AS Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Fund_Id,a.Seq_No,a.Ref_No,a.Tran_Date
             ,a.Amount_Baht
             ,a.Amount_Unit
             ,a.Nav_Price
@@ -534,7 +534,7 @@ exports.getTransaction = (req, res, next) => {
               AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
 
               OPEN MFTS_Transaction_cursor
-                FETCH NEXT FROM MFTS_Transaction_cursor INTO @Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Fund_Id,@Seq_No,@Ref_NO,@TranDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
+                FETCH NEXT FROM MFTS_Transaction_cursor INTO @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Fund_Id,@Seq_No,@Ref_NO,@TranDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
 
                       WHILE @@FETCH_STATUS = 0
                       BEGIN
@@ -564,12 +564,10 @@ exports.getTransaction = (req, res, next) => {
                               SET @RGL_P =  @RGL/@Cost_Amount_Baht * 100
                           END
 
-
                           INSERT INTO @temp
-                            SELECT @Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Ref_NO,@TranDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,@RGL_P
+                            SELECT @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Ref_NO,@TranDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,@RGL_P
 
-                            FETCH NEXT FROM MFTS_Transaction_cursor INTO @Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Fund_Id,@Seq_No,@Ref_NO,@TranDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
-
+                            FETCH NEXT FROM MFTS_Transaction_cursor INTO @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Fund_Id,@Seq_No,@Ref_NO,@TranDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
                       END
 
                   CLOSE MFTS_Transaction_cursor
