@@ -104,10 +104,15 @@ exports.userLoginByParam = (req, res, next) => {
             _loginCode ='102';
 
           }else if(data.isFirstTime ==='Y'){
-            _loginCode ='201';
+            _loginCode ='202';
 
           }else if(data.expPwd ==='Y'){
+
             _loginCode ='203';
+
+            var _msg = getLogiMsg(_loginCode);
+            saveLoginLog(_userName,_loginCode,_msg,req.ip,req.originalUrl)
+
             return res.status(401).json({
               MSG_CODE: _loginCode,
               MSG_DESC: getLogiMsg(_loginCode)
@@ -267,7 +272,12 @@ exports.resetPassword = (req,res,next)=>{
               });
             }else {
 
-              // saveLoginLog(input_userName,RESET_PWD_CODE,req.ip,req.originalUrl)
+              console.log('msg_code>>' + JSON.stringify(result.recordsets[0][0]));
+
+              if (result.recordsets[0][0].msg_code==='001'){
+                var _msg = getLogiMsg(RESET_PWD_CODE);
+                saveLoginLog(input_userName,RESET_PWD_CODE,_msg,req.ip,req.originalUrl)
+              }
 
               res.status(200).json({
                 MSG_CODE: result.recordsets[0][0].msg_code,
@@ -443,15 +453,9 @@ function loginProcessLog(_userName,_loginCode,_ip,_url) {
       pool1.request().query(queryStr, (err, result) => {
 
           if(err){
-            // console.log('ERROR >>' + err);
             reject(err);
-            // return new Promise(function(resolve, reject) {
-            //   resolve(result.recordsets[0][0].UserWasLock);
-            // });
 
           }else {
-            // console.log('resolve >>>' + JSON.stringify(result.recordsets[0][0].UserWasLock));
-            // resolve(result.recordsets[0][0].UserWasLock);
             resolve(result.recordsets[0][0]);
 
           }
@@ -461,3 +465,34 @@ function loginProcessLog(_userName,_loginCode,_ip,_url) {
   });
 
   }
+
+
+function saveLoginLog(_userName,_loginCode,log_msg,_ip,_url) {
+
+  // const _NO =1;
+  var queryStr = `
+  BEGIN
+
+    INSERT INTO MIT_USERS_LOG(LoginName,LogDateTime,LoginResultCode,log_msg,ip,url)
+    VALUES('${_userName}',GETDATE(),'${_loginCode}','${log_msg}','${_ip}','${_url}');
+
+  END
+  `;
+
+  const sql = require('mssql')
+  const pool1 = new sql.ConnectionPool(config, err => {
+    pool1.request().query(queryStr, (err, result) => {
+
+        if(err){
+          return err;
+
+        }else {
+          return null;
+        }
+      })
+  })
+
+
+
+}
+
