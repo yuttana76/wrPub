@@ -618,7 +618,7 @@ exports.getSummaryGroupByFundType = (req, res, next) => {
   DECLARE @DataDate date;
 
   --Find the max date
-  SELECT TOP 1  @DataDate = DataDate   FROM [WR_MFTS].[dbo].[IT_CustPortValueEndDay]
+  SELECT TOP 1  @DataDate = DataDate   FROM [IT_CustPortValueEndDay]
   WHERE CustID= @CustID
     ORDER BY DataDate;
 

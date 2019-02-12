@@ -440,8 +440,12 @@ function loginProcessLog(_userName,_loginCode,_ip,_url) {
       --SELECT   @UserWasLock  AS  UserWasLock
 
         SELECT  userLock AS UserWasLock,
-        isFirstTime,
-        CASE WHEN DATEDIFF(day, GETDATE(), expPwd) > 0 THEN 'N' ELSE 'Y' END    AS expPwd
+        ISNULL(isFirstTime ,'N') as isFirstTime,
+        CASE
+            WHEN expPwd is null THEN 'N'
+            WHEN DATEDIFF(day, GETDATE(), expPwd) > 0 THEN 'N'
+            ELSE 'Y'
+        END    AS expPwd
         FROM MIT_USERS
         WHERE LoginName = '${_userName}';
 
