@@ -23,7 +23,7 @@ exports.userLoginByParam = (req, res, next) => {
   logger.info( `API /Login (ByParam)- ${req.originalUrl} - ${req.ip} - ${_userName}`);
 
   let queryStr = `SELECT a.*
-                        ,b.Title_Name_E + ' ' + b.First_Name_T + ' ' + b.Last_Name_T FULLNAME
+                        ,b.Title_Name_T + ' ' + b.First_Name_T + ' ' + b.Last_Name_T FULLNAME
                  FROM [MIT_USERS] a
                  LEFT JOiN MIT_Account_Profile b ON a.USERID = b.CUST_CODE
                  WHERE STATUS = 'A'  AND CURRENT_TIMESTAMP < ISNULL(EXPIRE_DATE,CURRENT_TIMESTAMP+1)
