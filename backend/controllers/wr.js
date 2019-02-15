@@ -104,7 +104,7 @@ exports.getAccountByCustID = (req, res, next) => {
 }
 
 
-exports.getSummaryByCustID = (req, res, next) => {
+exports.  = (req, res, next) => {
 
   var fncName = 'getSummaryByCustID';
   var custCode = req.params.cusCode;
