@@ -120,7 +120,7 @@ DECLARE @DataDate date;
 SELECT TOP 1  @DataDate = DataDate
 FROM [IT_CustPortValueEndDay]
 WHERE CustID= @CustID
-ORDER BY DataDate;
+ORDER BY DataDate DESC;
 
 SELECT [CustID]
       ,c.Amc_Code

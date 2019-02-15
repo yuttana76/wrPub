@@ -27,7 +27,8 @@ exports.userLoginByParam = (req, res, next) => {
                  FROM [MIT_USERS] a
                  LEFT JOiN MIT_Account_Profile b ON a.USERID = b.CUST_CODE
                  WHERE STATUS = 'A'  AND CURRENT_TIMESTAMP < ISNULL(EXPIRE_DATE,CURRENT_TIMESTAMP+1)
-                 AND LoginName=@input_userName`;
+                 AND LoginName=@input_userName
+                 `;
 
   const sql = require('mssql')
 
