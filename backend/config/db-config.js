@@ -1,8 +1,8 @@
 exports.dbParameters = {
   user: 'mftsuser',//process.env.AUTH_SRV_USER,
   password: 'P@ssw0rd',//process.env.AUTH_SRV_PWD,
-  server: '192.168.10.48',//process.env.AUTH_SRV_IP,
-  database: 'WR_MFTS',//process.env.AUTH_SRV_db,
+  server: '192.168.2.25',// 192.168.10.48
+  database: 'MFTS',// WR_MFTS
   pool: {
     max: 10,
     min: 0,
