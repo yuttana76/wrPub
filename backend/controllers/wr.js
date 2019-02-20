@@ -104,7 +104,7 @@ exports.getAccountByCustID = (req, res, next) => {
 }
 
 
-exports.  = (req, res, next) => {
+exports.getSummaryByCustID = (req, res, next) => {
 
   var fncName = 'getSummaryByCustID';
   var custCode = req.params.cusCode;
@@ -288,7 +288,8 @@ exports.getFromSell = (req, res, next) => {
 
   logger.info( `API /onSell - ${req.originalUrl} - ${req.ip} -custCode:${custCode} -fromDate:${fromDate} -toDate:${toDate}`);
 
-  var queryStr =  `BEGIN
+  var queryStr =  `
+  BEGIN
   DECLARE @CustID VARCHAR(20) ='${custCode}';
 
   DECLARE @amcNameE   [varchar](200);
@@ -354,6 +355,7 @@ c.amc_name_e AS amcNameE
   AND TranType_Code IN ('S','SO','TO')
   AND x.Account_No= @CustID
   AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
+  ORDER BY Tran_Date DESC
 
   OPEN MFTS_Transaction_cursor
     FETCH NEXT FROM MFTS_Transaction_cursor INTO @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@TranType_Date,@Fund_Id,@Seq_No,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
@@ -393,7 +395,8 @@ c.amc_name_e AS amcNameE
   -- OUTPUT
   SELECT * FROM @temp
 
-END`
+END
+`
 
 // console.log('QUERY>>' + queryStr);
 
@@ -532,6 +535,7 @@ exports.getTransaction = (req, res, next) => {
               AND TranType_Code IN ('S','SO','TO','B','SI','TI')
               AND x.Account_No= @CustID
               AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
+              ORDER BY a.Tran_Date ASC
 
               OPEN MFTS_Transaction_cursor
                 FETCH NEXT FROM MFTS_Transaction_cursor INTO @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Fund_Id,@Seq_No,@Ref_NO,@TranDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
@@ -541,7 +545,8 @@ exports.getTransaction = (req, res, next) => {
 
                           IF ISNULL(@Cost_Amount_Baht,0) = 0
                           BEGIN
-                              select TOP 1 @Avg_Cost= ISNULL(Avg_Cost,0)
+                              --select TOP 1 @Avg_Cost= ISNULL(Avg_Cost,0)
+                              select TOP 1 @Avg_Cost= ISNULL(Total_Cost,0)
                               from MFTS_Transaction
                               where  Ref_NO = @Ref_NO
                               AND Fund_Id = @Fund_Id
@@ -553,16 +558,19 @@ exports.getTransaction = (req, res, next) => {
                               SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
                           END
 
-                          IF ISNULL(@RGL,0) = 0
+                          IF @TranType_Code NOT IN ('B','SI','TI')
                           BEGIN
-                          SET @RGL = @Amount_Baht - @Cost_Amount_Baht;
-                          END
+                            IF ISNULL(@RGL,0) = 0
+                            BEGIN
+                            SET @RGL = @Amount_Baht - @Cost_Amount_Baht;
+                            END
 
-                          SET @RGL_P =0;
-                          IF @RGL <> 0 AND @Cost_Amount_Baht != 0
-                          BEGIN
-                              SET @RGL_P =  @RGL/@Cost_Amount_Baht * 100
-                          END
+                            SET @RGL_P =0;
+                            IF @RGL <> 0 AND @Cost_Amount_Baht != 0
+                            BEGIN
+                                SET @RGL_P =  @RGL/@Cost_Amount_Baht * 100
+                            END
+                          END;
 
                           INSERT INTO @temp
                             SELECT @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Ref_NO,@TranDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,@RGL_P
@@ -575,8 +583,8 @@ exports.getTransaction = (req, res, next) => {
 
               -- OUTPUT
               SELECT * FROM @temp
-
-          END `;
+          END
+          `;
 
   const sql = require('mssql')
   const pool1 = new sql.ConnectionPool(config, err => {
@@ -620,7 +628,7 @@ exports.getSummaryGroupByFundType = (req, res, next) => {
   --Find the max date
   SELECT TOP 1  @DataDate = DataDate   FROM [IT_CustPortValueEndDay]
   WHERE CustID= @CustID
-    ORDER BY DataDate;
+  ORDER BY DataDate DESC;
 
   SELECT a.* , a.TOTAL_COST-a.AVG_COST AS UN_GL,((a.TOTAL_COST-a.AVG_COST)/a.AVG_COST)*100 AS UN_GL_P
   FROM (
@@ -1145,6 +1153,7 @@ exports.getSummaryOnSell = (req, res, next) => {
     AND x.Account_No= @CustID
     --AND ExecuteDate BETWEEN @firstDate AND GETDATE()
     AND ExecuteDate BETWEEN '${fromDate}' AND '${toDate}'
+    ORDER BY ExecuteDate DESC
 
     OPEN MFTS_Transaction_cursor
         FETCH NEXT FROM MFTS_Transaction_cursor INTO @FGroup_Code,@Fund_Id,@Seq_No,@Ref_NO,@Amount_Baht,@Amount_Unit,@Cost_Amount_Baht,@RGL
