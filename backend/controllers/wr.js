@@ -543,22 +543,10 @@ exports.getTransaction = (req, res, next) => {
                       WHILE @@FETCH_STATUS = 0
                       BEGIN
 
-                          IF ISNULL(@Cost_Amount_Baht,0) = 0
-                          BEGIN
-                              --select TOP 1 @Avg_Cost= ISNULL(Avg_Cost,0)
-                              --select TOP 1 @Avg_Cost= ISNULL(Total_Cost,0)
-                              --from MFTS_Transaction
-                              --where  Ref_NO = @Ref_NO
-                              --AND Fund_Id = @Fund_Id
-                              --AND Seq_No < @Seq_No
-                              --AND Status_Id=7
-                              --AND TranType_Code IN ('B','SI','TI')
-                              --ORDER BY Seq_No desc
 
-                              select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit(@Ref_NO,@Fund_Id,'${toDate}')
+                          select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit(@Ref_NO,@Fund_Id,@Act_ExecDate)
+                          SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
 
-                              SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
-                          END
 
                           IF @TranType_Code NOT IN ('B','SI','TI')
                           BEGIN

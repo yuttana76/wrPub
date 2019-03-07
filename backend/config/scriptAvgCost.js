@@ -1,80 +1,77 @@
-Public Function ITs_AverageCostPerUnit(Ref_No As String, Fund_ID As Integer, EndOfDataDate As String) As Double
-         '******** Trn In *****
-                             sqlTrnIn = " Select  sum(Amount_Unit)  as AmtUnitIn " & _
-                                                    " from mfts_Transaction " & _
-                                                    " where Ref_No = '" & Ref_No & "' and Fund_ID = '" & Fund_ID & "' and Status_ID = 7 " & _
-                                                      " and convert(char(10),Act_ExecDate,121) <= '" & EndOfDataDate & "'  " & _
-                                                      " and TranType_Code in ('B','SI','TI') " & _
-                                                    "  "
-                             Set rsTrnInConnex = connConnex.Execute(sqlTrnIn)
-                             If Not IsNull(rsTrnInConnex("AmtUnitIn")) Then
-                                    AmtUnitIn = rsTrnInConnex("AmtUnitIn")
-                             Else
-                                     AmtUnitIn = 0
-                             End If
-       '******** TrnOut *****
-                             sqlTrnOut = " Select  sum(Amount_Unit)  as AmtUnitOut " & _
-                                                    " from mfts_Transaction " & _
-                                                    " where Ref_No = '" & Ref_No & "' and Fund_ID = '" & Fund_ID & "' and Status_ID = 7 " & _
-                                                      " and convert(char(10),Act_ExecDate,121) <= '" & EndOfDataDate & "'  " & _
-                                                      " and TranType_Code in ('S','SO','TO') " & _
-                                                    "  "
-                             Set rsTrnOutConnex = connConnex.Execute(sqlTrnOut)
-                             If Not IsNull(rsTrnOutConnex("AmtUnitOut")) Then
-                                    AmtUnitOut = rsTrnOutConnex("AmtUnitOut")
-                             Else
-                                    AmtUnitOut = 0
-                             End If
+--Function AverageCostPerUnit
 
-                            TotalBalance_Unit = AmtUnitIn - AmtUnitOut
-                            If TotalBalance_Unit = 0 Then
-                                 Exit Function
-                            End If
+CREATE FUNCTION MIT_AverageCostPerUnit(@Ref_No  VARCHAR(50), @Fund_ID  int, @EndOfDataDate  datetime)
+RETURNS @retVal TABLE
+(
+   AvgCostPerUnit decimal(25,8)
+)
+BEGIN
+-- -- INPUT
+-- DECLARE @Ref_No VARCHAR(100) ='M00000000229';
+-- DECLARE @Fund_ID VARCHAR(100) = '185' ;
+-- DECLARE @EndOfDataDate DATE ='2018-12-30';
+-- -- INPUT
+-- --RETURN
+DECLARE @AvgCostPerUnit decimal(25,8) = 0;
 
-'*************************
-'    If Fund_ID = 429 Then
-'       test = ""
-'    End If
-                             sqlTrn = " Select  TranType_Code, Amount_Baht,Amount_Unit  ,Nav_Price " & _
-                                                    " from mfts_Transaction " & _
-                                                    " where Ref_No = '" & Ref_No & "' and Fund_ID = '" & Fund_ID & "' and Status_ID = 7 " & _
-                                                      " and convert(char(10),Act_ExecDate,121) <= '" & EndOfDataDate & "'  " & _
-                                                      "order by Act_ExecDate ,Tran_Id "
-                              Set rsTrnConnex = connConnex.Execute(sqlTrn)
+DECLARE @AmtAvgCost decimal(25,8) = 0;
+DECLARE @AmtUnit numeric(18, 4) = 0;
+-- mfts_Transaction
+DECLARE @TranType_Code [varchar](2);
+DECLARE @Amount_Baht [numeric](18, 2);
+DECLARE @Amount_Unit [numeric](18, 4);
+DECLARE @Nav_Price [numeric](18, 4);
 
+DECLARE @UnitOut [numeric](18, 4);
+DECLARE @CostOut decimal(25,8) = 0;
 
-                               AmtAvgCost = 0
-                               AvgCostPerUnit = 0
-                               AmtUnit = 0
-                              Do While Not rsTrnConnex.EOF
+DECLARE MFTS_Transaction_cursor CURSOR LOCAL  FOR
+Select  TranType_Code, Amount_Baht, Amount_Unit, Nav_Price
+from mfts_Transaction
+where Ref_No = @Ref_No and Fund_ID = @Fund_ID and Status_ID = 7
+and convert(char(10),Act_ExecDate,121) <= @EndOfDataDate
+order by Act_ExecDate ,Tran_Id
 
-                                        TranTypeCode = UCase(rsTrnConnex("TranType_Code"))
-                                        If TranTypeCode = "B" Or TranTypeCode = "SI" Or TranTypeCode = "TI" Then
-                                                      AmtAvgCost = AmtAvgCost + rsTrnConnex("Amount_Baht")
-                                                        AmtUnit = AmtUnit + Round(rsTrnConnex("Amount_Unit"), 4)
-                                                         AvgCostPerUnit = Round(AmtAvgCost / AmtUnit, 4)
-                                        End If
-                                        If TranTypeCode = "S" Or TranTypeCode = "SO" Or TranTypeCode = "TO" Then
-                                                          UnitOut = rsTrnConnex("Amount_Unit")
-                                                           CostOut = UnitOut * AvgCostPerUnit
+    OPEN MFTS_Transaction_cursor
+        FETCH NEXT FROM MFTS_Transaction_cursor INTO @TranType_Code,@Amount_Baht,@Amount_Unit,@Nav_Price
 
-                                                         AmtUnit = AmtUnit - rsTrnConnex("Amount_Unit")
-                                                         If AmtUnit = 0 Then
-                                                              AvgCostPerUnit = 0
-                                                                AmtAvgCost = 0
-                                                         Else
-                                                              AmtAvgCost = AmtAvgCost - CostOut
-                                                             AvgCostPerUnit = Round(AmtAvgCost / AmtUnit, 4)
-                                                           End If
-                                        End If
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
 
-                                    rsTrnConnex.MoveNext
-                                    Loop
-skiploop:
-                       ITs_AverageCostPerUnit = AvgCostPerUnit
+        IF @TranType_Code = 'B'  OR @TranType_Code = 'SI' OR @TranType_Code = 'TI'
+        BEGIN
+            SET @AmtAvgCost = @AmtAvgCost + @Amount_Baht
+            SET @AmtUnit = @AmtUnit + Round(@Amount_Unit, 4)
+            SET @AvgCostPerUnit = Round(@AmtAvgCost / @AmtUnit, 4)
+        END
+        ELSE IF @TranType_Code = 'S'  OR @TranType_Code = 'SO' OR @TranType_Code = 'TO'
+        BEGIN
+            SET @UnitOut = @Amount_Unit
+            SET @CostOut = @UnitOut * @AvgCostPerUnit
 
+            SET @AmtUnit = @AmtUnit - @Amount_Unit
+            IF @AmtUnit = 0
+            BEGIN
+                SET @AvgCostPerUnit = 0
+                SET @AmtAvgCost = 0
+            END
+            ELSE BEGIN
+                SET @AmtAvgCost = @AmtAvgCost - @CostOut
+                SET @AvgCostPerUnit = @AmtAvgCost / @AmtUnit
+            END
 
-        Set rsTrnConnex = Nothing
-         Set rsTrnOutConnex = Nothing
-          Set rsTrnInConnex = Nothing
-End Function
+        END
+        FETCH NEXT FROM MFTS_Transaction_cursor INTO @TranType_Code,@Amount_Baht,@Amount_Unit,@Nav_Price
+    END
+
+    CLOSE MFTS_Transaction_cursor
+    DEALLOCATE MFTS_Transaction_cursor
+
+--Return @AvgCostPerUnit
+-- SELECT @AvgCostPerUnit
+
+INSERT @retVal
+        SELECT @AvgCostPerUnit
+
+RETURN;
+END
