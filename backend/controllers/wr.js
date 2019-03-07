@@ -493,7 +493,7 @@ exports.getTransaction = (req, res, next) => {
             DECLARE @RGL   [decimal](20, 6)=0 ;
             DECLARE @RGL_P   [decimal](20, 6)=0 ;
             DECLARE @SUM_RGL   [decimal](20, 6);
-            DECLARE @Avg_Cost [decimal](18, 2)=0;
+            DECLARE @Avg_Cost [decimal](18, 4)=0;
 
             declare @temp table(
               amcNameE [varchar](200)
@@ -546,14 +546,16 @@ exports.getTransaction = (req, res, next) => {
                           IF ISNULL(@Cost_Amount_Baht,0) = 0
                           BEGIN
                               --select TOP 1 @Avg_Cost= ISNULL(Avg_Cost,0)
-                              select TOP 1 @Avg_Cost= ISNULL(Total_Cost,0)
-                              from MFTS_Transaction
-                              where  Ref_NO = @Ref_NO
-                              AND Fund_Id = @Fund_Id
-                              AND Seq_No < @Seq_No
-                              AND Status_Id=7
-                              AND TranType_Code IN ('B','SI','TI')
-                              ORDER BY Seq_No desc
+                              --select TOP 1 @Avg_Cost= ISNULL(Total_Cost,0)
+                              --from MFTS_Transaction
+                              --where  Ref_NO = @Ref_NO
+                              --AND Fund_Id = @Fund_Id
+                              --AND Seq_No < @Seq_No
+                              --AND Status_Id=7
+                              --AND TranType_Code IN ('B','SI','TI')
+                              --ORDER BY Seq_No desc
+
+                              select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit(@Ref_NO,@Fund_Id,'${toDate}')
 
                               SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
                           END
