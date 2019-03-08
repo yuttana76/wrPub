@@ -523,13 +523,12 @@ exports.getTransaction = (req, res, next) => {
             c.amc_name_e AS amcNameE
             ,b.Thai_Name AS fundNameT
             ,b.Eng_Name AS fundNameE
-            ,c.Amc_CODE AS Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Fund_Id,a.Seq_No,a.Ref_No,a.Tran_Date
+            ,c.Amc_CODE AS Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Fund_Id,a.Seq_No,a.Ref_No, a.Act_ExecDate AS Tran_Date
             ,a.Amount_Baht
             ,a.Amount_Unit
             ,a.Nav_Price
             ,a.Avg_Cost
             , a.Amount_Unit * a.Avg_Cost
-
             ,a.RGL
             ,a.Act_ExecDate
             FROM [MFTS_Transaction] a
@@ -537,11 +536,11 @@ exports.getTransaction = (req, res, next) => {
                 LEFT JOIN   MFTS_Amc c ON b.Amc_Id=c.Amc_Id
               , [MFTS_Account] x
               where a.Ref_No=x.Ref_No
-              --AND a.Status_Id=7
+              AND a.Status_Id=7
               AND TranType_Code IN ('S','SO','TO','B','SI','TI')
               AND x.Account_No= @CustID
               AND Tran_Date BETWEEN @fromDate AND @toDate
-              ORDER BY a.Tran_Date ASC
+              ORDER BY a.Act_ExecDate DESC
 
               OPEN MFTS_Transaction_cursor
                 FETCH NEXT FROM MFTS_Transaction_cursor INTO @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Fund_Id,@Seq_No,@Ref_NO,@TranDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,@Act_ExecDate
