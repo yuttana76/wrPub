@@ -471,6 +471,8 @@ exports.getTransaction = (req, res, next) => {
   var queryStr = `
             BEGIN
             DECLARE @CustID VARCHAR(20) = '${custCode}';
+            DECLARE @fromDate Date = '${fromDate}';
+            DECLARE @toDate Date = '${toDate}';
 
             DECLARE @amcNameE   [varchar](200);
             DECLARE @fundNameT   [varchar](200);
@@ -494,6 +496,7 @@ exports.getTransaction = (req, res, next) => {
             DECLARE @RGL_P   [decimal](20, 6)=0 ;
             DECLARE @SUM_RGL   [decimal](20, 6);
             DECLARE @Avg_Cost [decimal](18, 4)=0;
+            DECLARE @Act_ExecDate Date;
 
             declare @temp table(
               amcNameE [varchar](200)
@@ -512,6 +515,7 @@ exports.getTransaction = (req, res, next) => {
               ,Cost_Amount_Baht [numeric](18, 2)
               ,RGL [decimal](20, 6)
               ,RGL_P [decimal](20, 6)
+              ,Act_ExecDate Date
             )
 
             DECLARE MFTS_Transaction_cursor CURSOR LOCAL  FOR
@@ -525,8 +529,10 @@ exports.getTransaction = (req, res, next) => {
             ,a.Nav_Price
             ,a.Avg_Cost
             , a.Amount_Unit * a.Avg_Cost
+
             ,a.RGL
-                FROM [MFTS_Transaction] a
+            ,a.Act_ExecDate
+            FROM [MFTS_Transaction] a
                 LEFT JOIN   [MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
                 LEFT JOIN   MFTS_Amc c ON b.Amc_Id=c.Amc_Id
               , [MFTS_Account] x
@@ -534,11 +540,11 @@ exports.getTransaction = (req, res, next) => {
               --AND a.Status_Id=7
               AND TranType_Code IN ('S','SO','TO','B','SI','TI')
               AND x.Account_No= @CustID
-              AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
+              AND Tran_Date BETWEEN @fromDate AND @toDate
               ORDER BY a.Tran_Date ASC
 
               OPEN MFTS_Transaction_cursor
-                FETCH NEXT FROM MFTS_Transaction_cursor INTO @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Fund_Id,@Seq_No,@Ref_NO,@TranDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
+                FETCH NEXT FROM MFTS_Transaction_cursor INTO @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Fund_Id,@Seq_No,@Ref_NO,@TranDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,@Act_ExecDate
 
                       WHILE @@FETCH_STATUS = 0
                       BEGIN
@@ -563,9 +569,9 @@ exports.getTransaction = (req, res, next) => {
                           END;
 
                           INSERT INTO @temp
-                            SELECT @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Ref_NO,@TranDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,@RGL_P
+                            SELECT @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Ref_NO,@TranDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,@RGL_P,@Act_ExecDate
 
-                            FETCH NEXT FROM MFTS_Transaction_cursor INTO @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Fund_Id,@Seq_No,@Ref_NO,@TranDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
+                            FETCH NEXT FROM MFTS_Transaction_cursor INTO @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Fund_Id,@Seq_No,@Ref_NO,@TranDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,@Act_ExecDate
                       END
 
                   CLOSE MFTS_Transaction_cursor
