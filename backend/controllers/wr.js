@@ -527,7 +527,7 @@ exports.getTransaction = (req, res, next) => {
             ,a.Amount_Baht
             ,a.Amount_Unit
             ,a.Nav_Price
-            ,a.Avg_Cost
+            ,a.Nav_Price AS Avg_Cost
             , a.Amount_Unit * a.Avg_Cost
             ,a.RGL
             ,a.Act_ExecDate
