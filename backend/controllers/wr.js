@@ -514,7 +514,7 @@ exports.getTransaction = (req, res, next) => {
               ,Avg_Cost [numeric](18, 4)
               ,Cost_Amount_Baht [numeric](18, 2)
               ,RGL [decimal](20, 6)
-              ,RGL_P [decimal](20, 6)
+              ,RGL_P [decimal](20, 2)
               ,Act_ExecDate Date
             )
 
@@ -527,7 +527,7 @@ exports.getTransaction = (req, res, next) => {
             ,a.Amount_Baht
             ,a.Amount_Unit
             ,a.Nav_Price
-            ,a.Nav_Price AS Avg_Cost
+            ,a.Avg_Cost
             , a.Amount_Unit * a.Avg_Cost
             ,a.RGL
             ,a.Act_ExecDate
@@ -563,7 +563,7 @@ exports.getTransaction = (req, res, next) => {
                             SET @RGL_P =0;
                             IF @RGL <> 0 AND @Cost_Amount_Baht != 0
                             BEGIN
-                                SET @RGL_P =  @RGL/@Cost_Amount_Baht * 100
+                                SET @RGL_P =  ROUND(@RGL/@Cost_Amount_Baht * 100,2)
                             END
                           END;
 
@@ -625,7 +625,8 @@ exports.getSummaryGroupByFundType = (req, res, next) => {
   WHERE CustID= @CustID
   ORDER BY DataDate DESC;
 
-  SELECT a.* , a.TOTAL_COST-a.AVG_COST AS UN_GL,((a.TOTAL_COST-a.AVG_COST)/a.AVG_COST)*100 AS UN_GL_P
+  --SELECT a.* , a.TOTAL_COST-a.AVG_COST AS UN_GL,((a.TOTAL_COST-a.AVG_COST)/a.AVG_COST)*100 AS UN_GL_P
+  SELECT @DataDate AS DataDate ,a.* , a.TOTAL_COST-a.AVG_COST AS UN_GL,ROUND(((a.TOTAL_COST-a.AVG_COST)/a.AVG_COST)*100,2)  AS UN_GL_P
   FROM (
   SELECT b.FGroup_Code AS FUND_TYPE,SUM(AvgCost) AS AVG_COST,SUM(MarketValue) AS TOTAL_COST
     FROM [IT_CustPortValueEndDay] a
