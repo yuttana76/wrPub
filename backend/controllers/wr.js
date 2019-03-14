@@ -292,46 +292,51 @@ exports.getFromSell = (req, res, next) => {
   BEGIN
   DECLARE @CustID VARCHAR(20) ='${custCode}';
 
-  DECLARE @amcNameE   [varchar](200);
-  DECLARE @fundNameT   [varchar](200);
-  DECLARE @fundNameE   [varchar](200);
-  DECLARE @Amc_Name   [varchar](200);
-  DECLARE @FGroup_Code   [varchar](15);
-  DECLARE @Fund_Id   int;
-  DECLARE @Seq_No   int;
-  DECLARE @Fund_Code [varchar](30);
-  DECLARE @TranType_Code [varchar](2);
-  DECLARE @TranType_Date [datetime];
-  DECLARE @Ref_NO   [varchar](15);
-  DECLARE @ExecuteDate  [datetime];
-  DECLARE @Amount_Baht   [decimal](18, 2)=0;
-  DECLARE @SUM_Amount_Baht   [decimal](18, 2)=0;
-  DECLARE @Amount_Unit   [decimal](18, 4)=0;
-  DECLARE @Nav_Price [numeric](18, 4);
-  DECLARE @Cost_Amount_Baht   [decimal](18, 2)=0;
-  DECLARE @SUM_Cost_Amount_Baht   [decimal](30, 2)=0;
-  DECLARE @RGL   [decimal](20, 6)=0 ;
-  DECLARE @SUM_RGL   [decimal](20, 6);
-  DECLARE @Avg_Cost [decimal](18, 2)=0;
+  DECLARE @fromDate date ='${fromDate}';
+  DECLARE @toDate date ='${toDate}';
+
+DECLARE @amcNameE   [varchar](200);
+DECLARE @fundNameT   [varchar](200);
+DECLARE @fundNameE   [varchar](200);
+DECLARE @Amc_Name   [varchar](200);
+DECLARE @FGroup_Code   [varchar](15);
+DECLARE @Fund_Id   int;
+DECLARE @Seq_No   int;
+DECLARE @Fund_Code [varchar](30);
+DECLARE @TranType_Code [varchar](2);
+DECLARE @Tran_Date [datetime];
+DECLARE @Ref_NO   [varchar](15);
+DECLARE @ExecuteDate  [datetime];
+DECLARE @Amount_Baht   [decimal](18, 2)=0;
+DECLARE @SUM_Amount_Baht   [decimal](18, 2)=0;
+DECLARE @Amount_Unit   [decimal](18, 4)=0;
+DECLARE @Nav_Price [numeric](18, 4);
+DECLARE @Cost_Amount_Baht   [decimal](18, 2)=0;
+DECLARE @SUM_Cost_Amount_Baht   [decimal](30, 2)=0;
+DECLARE @RGL   [decimal](20, 6)=0 ;
+DECLARE @SUM_RGL   [decimal](20, 6);
+DECLARE @Avg_Cost [decimal](18, 4)=0;
+DECLARE @Act_ExecDate Date;
 
 declare @temp table(
-    amcNameE [varchar](200)
-    ,fundNameT [varchar](200)
-    ,fundNameE [varchar](200)
-   ,Amc_Name[varchar](200)
-   ,FGroup_Code [varchar](15)
-   ,Fund_Code [varchar](30)
-   ,TranType_Code [varchar](2)
-   ,Tran_Date [datetime]
-   ,Ref_No [varchar](12)
-   ,ExecuteDate [datetime]
-   ,Amount_Baht [numeric](18, 2)
-   ,Amount_Unit [numeric](18, 4)
-   ,Nav_Price [numeric](18, 4)
-   ,Avg_Cost [numeric](18, 4)
-   ,Cost_Amount_Baht [numeric](18, 2)
-   ,RGL [decimal](20, 6)
-   ,RGL_P [decimal](20, 6)
+  amcNameE [varchar](200)
+  ,fundNameT [varchar](200)
+  ,fundNameE [varchar](200)
+ ,Amc_Name[varchar](200)
+ ,FGroup_Code [varchar](15)
+ ,Fund_Code [varchar](30)
+ ,TranType_Code [varchar](2)
+ ,Tran_Date [datetime]
+ ,Ref_No [varchar](12)
+ ,ExecuteDate [datetime]
+ ,Amount_Baht [numeric](18, 2)
+ ,Amount_Unit [numeric](18, 4)
+ ,Nav_Price [numeric](18, 4)
+ ,Avg_Cost [numeric](18, 4)
+ ,Cost_Amount_Baht [numeric](18, 2)
+ ,RGL [decimal](20, 6)
+ ,RGL_P [decimal](20, 2)
+ ,Act_ExecDate Date
 )
 
 DECLARE MFTS_Transaction_cursor CURSOR LOCAL  FOR
@@ -339,61 +344,66 @@ SELECT
 c.amc_name_e AS amcNameE
 ,b.Thai_Name AS fundNameT
 ,b.Eng_Name AS fundNameE
-,c.Amc_CODE AS Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Tran_Date,a.Fund_Id,a.Seq_No,a.Ref_No,a.ExecuteDate
+,c.Amc_CODE AS Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.ExecuteDate AS Tran_Date,a.Fund_Id,a.Seq_No,a.Ref_No,a.ExecuteDate
 ,a.Amount_Baht
 ,a.Amount_Unit
 ,a.Nav_Price
 ,a.Avg_Cost
 , a.Amount_Unit * a.Avg_Cost
 ,a.RGL
-    FROM [MFTS_Transaction] a
-    LEFT JOIN   [MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
-    LEFT JOIN   MFTS_Amc c ON b.Amc_Id=c.Amc_Id
-  , [MFTS_Account] x
-  where a.Ref_No=x.Ref_No
-  AND a.Status_Id=7
-  AND TranType_Code IN ('S','SO','TO')
-  AND x.Account_No= @CustID
-  AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
-  ORDER BY Tran_Date DESC
+,a.Act_ExecDate
+  FROM [MFTS_Transaction] a
+  LEFT JOIN   [MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
+  LEFT JOIN   MFTS_Amc c ON b.Amc_Id=c.Amc_Id
+, [MFTS_Account] x
+where a.Ref_No=x.Ref_No
+AND a.Status_Id=7
+AND TranType_Code IN ('S','SO','TO')
+AND x.Account_No= @CustID
+--   AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
+AND ExecuteDate BETWEEN @fromDate AND @toDate
+ORDER BY ExecuteDate ASC
 
-  OPEN MFTS_Transaction_cursor
-    FETCH NEXT FROM MFTS_Transaction_cursor INTO @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@TranType_Date,@Fund_Id,@Seq_No,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
+OPEN MFTS_Transaction_cursor
+  FETCH NEXT FROM MFTS_Transaction_cursor INTO @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Tran_Date,@Fund_Id,@Seq_No,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,@Act_ExecDate
 
-          WHILE @@FETCH_STATUS = 0
-          BEGIN
+        WHILE @@FETCH_STATUS = 0
+        BEGIN
 
-              IF ISNULL(@Cost_Amount_Baht,0) = 0
-              BEGIN
-                  select TOP 1 @Avg_Cost= ISNULL(Avg_Cost,0)
-                  from MFTS_Transaction
-                  where  Ref_NO = @Ref_NO
-                  AND Fund_Id = @Fund_Id
-                  AND Seq_No <= @Seq_No
-                  AND Status_Id=7
-                  AND TranType_Code IN ('B','SI','TI')
-                  ORDER BY Seq_No desc
+          --   IF ISNULL(@Cost_Amount_Baht,0) = 0
+          --   BEGIN
+          --       select TOP 1 @Avg_Cost= ISNULL(Avg_Cost,0)
+          --       from MFTS_Transaction
+          --       where  Ref_NO = @Ref_NO
+          --       AND Fund_Id = @Fund_Id
+          --       AND Seq_No <= @Seq_No
+          --       AND Status_Id=7
+          --       AND TranType_Code IN ('B','SI','TI')
+          --       ORDER BY Seq_No desc
 
-                  SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
-              END
+          --       SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
+          --   END
 
-              IF ISNULL(@RGL,0) = 0
-              BEGIN
-              SET @RGL = @Amount_Baht - @Cost_Amount_Baht;
-              END
+              select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit(@Ref_NO,@Fund_Id,@Act_ExecDate)
+              SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
 
-              INSERT INTO @temp
-                 SELECT @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@TranType_Date,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,(@RGL/@Cost_Amount_Baht)*100
+            IF ISNULL(@RGL,0) = 0
+            BEGIN
+            SET @RGL = @Amount_Baht - @Cost_Amount_Baht;
+            END
 
-                 FETCH NEXT FROM MFTS_Transaction_cursor INTO @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@TranType_Date,@Fund_Id,@Seq_No,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL
+            INSERT INTO @temp
+               SELECT @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Tran_Date,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,(@RGL/@Cost_Amount_Baht)*100,@Act_ExecDate
 
-          END
+               FETCH NEXT FROM MFTS_Transaction_cursor INTO @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Tran_Date,@Fund_Id,@Seq_No,@Ref_NO,@ExecuteDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,@Act_ExecDate
 
-      CLOSE MFTS_Transaction_cursor
-      DEALLOCATE MFTS_Transaction_cursor
+        END
 
-  -- OUTPUT
-  SELECT * FROM @temp
+    CLOSE MFTS_Transaction_cursor
+    DEALLOCATE MFTS_Transaction_cursor
+
+    -- OUTPUT
+    SELECT * FROM @temp
 
 END
 `
@@ -540,7 +550,7 @@ exports.getTransaction = (req, res, next) => {
               AND TranType_Code IN ('S','SO','TO','B','SI','TI')
               AND x.Account_No= @CustID
               AND Tran_Date BETWEEN @fromDate AND @toDate
-              ORDER BY a.Act_ExecDate DESC
+              ORDER BY a.Act_ExecDate ASC
 
               OPEN MFTS_Transaction_cursor
                 FETCH NEXT FROM MFTS_Transaction_cursor INTO @amcNameE,@fundNameT,@fundNameE,@Amc_Name,@FGroup_Code,@Fund_Code,@TranType_Code,@Fund_Id,@Seq_No,@Ref_NO,@TranDate,@Amount_Baht,@Amount_Unit,@Nav_Price,@Avg_Cost,@Cost_Amount_Baht,@RGL,@Act_ExecDate
@@ -1116,6 +1126,11 @@ exports.getSummaryOnSell = (req, res, next) => {
   BEGIN
   DECLARE @CustID VARCHAR(20) ='${custCode}';
 
+
+DECLARE @CustID VARCHAR(20) = '${custCode}';
+DECLARE @fromDate date = '${fromDate}';
+DECLARE @toDate date = '${toDate}';
+
 -- Execute whole year
   DECLARE @firstDate date;
   SELECT   @firstDate = DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0)
@@ -1131,8 +1146,9 @@ exports.getSummaryOnSell = (req, res, next) => {
   DECLARE @SUM_Cost_Amount_Baht   [decimal](30, 2)=0;
   DECLARE @RGL   [decimal](20, 6)=0 ;
   DECLARE @SUM_RGL   [decimal](20, 6);
-
   DECLARE @Avg_Cost [decimal](18, 2)=0;
+  DECLARE @Act_ExecDate Date;
+
 
   DECLARE MFTS_Transaction_cursor CURSOR LOCAL  FOR
   SELECT b.FGroup_Code  ,a.Fund_Id,a.Seq_No,a.Ref_No
@@ -1140,6 +1156,7 @@ exports.getSummaryOnSell = (req, res, next) => {
   ,a.Amount_Unit
   , a.Amount_Unit * a.Avg_Cost
   ,a.RGL
+  ,a.Act_ExecDate
       FROM [MFTS_Transaction] a
       LEFT JOIN   [MFTS_Fund] b ON a.Fund_Id = b.Fund_Id
     , [MFTS_Account] x
@@ -1147,29 +1164,17 @@ exports.getSummaryOnSell = (req, res, next) => {
     AND a.Status_Id=7
     AND TranType_Code IN ('S','SO')
     AND x.Account_No= @CustID
-    --AND ExecuteDate BETWEEN @firstDate AND GETDATE()
-    AND ExecuteDate BETWEEN '${fromDate}' AND '${toDate}'
+    -- AND ExecuteDate BETWEEN '${fromDate}' AND '${toDate}'
+    AND ExecuteDate BETWEEN @fromDate AND @toDate
     ORDER BY ExecuteDate DESC
 
     OPEN MFTS_Transaction_cursor
-        FETCH NEXT FROM MFTS_Transaction_cursor INTO @FGroup_Code,@Fund_Id,@Seq_No,@Ref_NO,@Amount_Baht,@Amount_Unit,@Cost_Amount_Baht,@RGL
+        FETCH NEXT FROM MFTS_Transaction_cursor INTO @FGroup_Code,@Fund_Id,@Seq_No,@Ref_NO,@Amount_Baht,@Amount_Unit,@Cost_Amount_Baht,@RGL,@Act_ExecDate
 
             WHILE @@FETCH_STATUS = 0
             BEGIN
-
-                IF ISNULL(@Cost_Amount_Baht,0) = 0
-                BEGIN
-                    select TOP 1 @Avg_Cost= ISNULL(Avg_Cost,0)
-                    from MFTS_Transaction
-                    where  Ref_NO = @Ref_NO
-                    AND Fund_Id = @Fund_Id
-                    AND Seq_No < @Seq_No
-                    AND Status_Id=7
-                    AND TranType_Code IN ('B','SI','TI')
-                    ORDER BY Seq_No desc
-
-                    SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
-                END
+                select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit(@Ref_NO,@Fund_Id,@Act_ExecDate)
+                SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
 
                 -- SUM 1
                 SET  @SUM_Amount_Baht  += @Amount_Baht;
@@ -1181,7 +1186,7 @@ exports.getSummaryOnSell = (req, res, next) => {
                 -- SET  @SUM_RGL =  ISNULL(@SUM_RGL,0) + ISNULL(@RGL,0)
                 SET  @SUM_RGL =  ISNULL(@SUM_RGL,0) + ( ISNULL(@Amount_Baht,0) - ISNULL(@Cost_Amount_Baht,0))
 
-                FETCH NEXT FROM MFTS_Transaction_cursor INTO @FGroup_Code,@Fund_Id,@Seq_No,@Ref_NO,@Amount_Baht,@Amount_Unit,@Cost_Amount_Baht,@RGL
+                FETCH NEXT FROM MFTS_Transaction_cursor INTO @FGroup_Code,@Fund_Id,@Seq_No,@Ref_NO,@Amount_Baht,@Amount_Unit,@Cost_Amount_Baht,@RGL,@Act_ExecDate
             END
 
         CLOSE MFTS_Transaction_cursor
