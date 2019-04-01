@@ -133,13 +133,13 @@ SELECT [CustID]
       ,[BalanceUnit]
       ,[AvgCostUnit]
       ,[AvgCost]
-      ,[MarketPriceDate]
+      ,[MarketPriceDate] AS DataDate
       ,[MarketPrice]
       ,[MarketValue]
       ,[GainLoss]
       ,[ReturnPC]
       ,[Proportion]
-      ,DataDate
+      --,DataDate
   FROM [IT_CustPortValueEndDay] a
   LEFT JOIN   [MFTS_Fund] b ON a.FundID = b.Fund_Id
   LEFT JOIN  [MFTS_Amc] c ON a.AMCID = c.Amc_Id
@@ -369,20 +369,6 @@ OPEN MFTS_Transaction_cursor
 
         WHILE @@FETCH_STATUS = 0
         BEGIN
-
-          --   IF ISNULL(@Cost_Amount_Baht,0) = 0
-          --   BEGIN
-          --       select TOP 1 @Avg_Cost= ISNULL(Avg_Cost,0)
-          --       from MFTS_Transaction
-          --       where  Ref_NO = @Ref_NO
-          --       AND Fund_Id = @Fund_Id
-          --       AND Seq_No <= @Seq_No
-          --       AND Status_Id=7
-          --       AND TranType_Code IN ('B','SI','TI')
-          --       ORDER BY Seq_No desc
-
-          --       SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
-          --   END
 
               select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit(@Ref_NO,@Fund_Id,@Act_ExecDate)
               SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
@@ -616,7 +602,6 @@ exports.getTransaction = (req, res, next) => {
   })
 }
 //*********************** V.2 */
-
 exports.getSummaryGroupByFundType = (req, res, next) => {
 
   var fncName = 'getCustomerInfo';
@@ -629,14 +614,16 @@ exports.getSummaryGroupByFundType = (req, res, next) => {
 
   DECLARE @CustID VARCHAR(20) ='${custCode}';
   DECLARE @DataDate date;
+  DECLARE @MKpriceDate date;
+  DECLARE @MKpriceDate date;
 
   --Find the max date
-  SELECT TOP 1  @DataDate = DataDate   FROM [IT_CustPortValueEndDay]
+  SELECT TOP 1  @DataDate = DataDate, @MKpriceDate =MarketPriceDate
+  FROM [IT_CustPortValueEndDay]
   WHERE CustID= @CustID
   ORDER BY DataDate DESC;
 
-  --SELECT a.* , a.TOTAL_COST-a.AVG_COST AS UN_GL,((a.TOTAL_COST-a.AVG_COST)/a.AVG_COST)*100 AS UN_GL_P
-  SELECT @DataDate AS DataDate ,a.* , a.TOTAL_COST-a.AVG_COST AS UN_GL,ROUND(((a.TOTAL_COST-a.AVG_COST)/a.AVG_COST)*100,2)  AS UN_GL_P
+  SELECT @MKpriceDate AS DataDate ,a.* , a.TOTAL_COST-a.AVG_COST AS UN_GL,ROUND(((a.TOTAL_COST-a.AVG_COST)/a.AVG_COST)*100,2)  AS UN_GL_P
   FROM (
   SELECT b.FGroup_Code AS FUND_TYPE,SUM(AvgCost) AS AVG_COST,SUM(MarketValue) AS TOTAL_COST
     FROM [IT_CustPortValueEndDay] a
