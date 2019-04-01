@@ -344,7 +344,7 @@ SELECT
 c.amc_name_e AS amcNameE
 ,b.Thai_Name AS fundNameT
 ,b.Eng_Name AS fundNameE
-,c.Amc_CODE AS Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.ExecuteDate AS Tran_Date,a.Fund_Id,a.Seq_No,a.Ref_No,a.ExecuteDate
+,c.Amc_CODE AS Amc_Name,b.FGroup_Code,b.Fund_Code,a.TranType_Code,a.Tran_Date,a.Fund_Id,a.Seq_No,a.Ref_No,a.ExecuteDate
 ,a.Amount_Baht
 ,a.Amount_Unit
 ,a.Nav_Price
@@ -360,7 +360,6 @@ where a.Ref_No=x.Ref_No
 AND a.Status_Id=7
 AND TranType_Code IN ('S','SO','TO')
 AND x.Account_No= @CustID
---   AND Tran_Date BETWEEN '${fromDate}' AND '${toDate}'
 AND ExecuteDate BETWEEN @fromDate AND @toDate
 ORDER BY ExecuteDate ASC
 
