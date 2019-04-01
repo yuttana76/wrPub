@@ -311,8 +311,8 @@ DECLARE @Amount_Baht   [decimal](18, 2)=0;
 DECLARE @SUM_Amount_Baht   [decimal](18, 2)=0;
 DECLARE @Amount_Unit   [decimal](18, 4)=0;
 DECLARE @Nav_Price [numeric](18, 4);
-DECLARE @Cost_Amount_Baht   [decimal](18, 2)=0;
-DECLARE @SUM_Cost_Amount_Baht   [decimal](30, 2)=0;
+DECLARE @Cost_Amount_Baht   [decimal](18)=0;
+DECLARE @SUM_Cost_Amount_Baht   [decimal](30)=0;
 DECLARE @RGL   [decimal](20, 6)=0 ;
 DECLARE @SUM_RGL   [decimal](20, 6);
 DECLARE @Avg_Cost [decimal](18, 4)=0;
@@ -333,7 +333,7 @@ declare @temp table(
  ,Amount_Unit [numeric](18, 4)
  ,Nav_Price [numeric](18, 4)
  ,Avg_Cost [numeric](18, 4)
- ,Cost_Amount_Baht [numeric](18, 2)
+ ,Cost_Amount_Baht [numeric](18)
  ,RGL [decimal](20, 6)
  ,RGL_P [decimal](20, 2)
  ,Act_ExecDate Date
@@ -370,7 +370,7 @@ OPEN MFTS_Transaction_cursor
         BEGIN
 
               select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit(@Ref_NO,@Fund_Id,@Act_ExecDate)
-              SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
+              SET @Cost_Amount_Baht  =  ROUND(@Amount_Unit * @Avg_Cost,2)
 
             IF ISNULL(@RGL,0) = 0
             BEGIN
@@ -485,7 +485,7 @@ exports.getTransaction = (req, res, next) => {
             DECLARE @SUM_Amount_Baht   [decimal](18, 2)=0;
             DECLARE @Amount_Unit   [decimal](18, 4)=0;
             DECLARE @Nav_Price [numeric](18, 4);
-            DECLARE @Cost_Amount_Baht   [decimal](18, 2)=0;
+            DECLARE @Cost_Amount_Baht   [decimal](18)=0;
             DECLARE @SUM_Cost_Amount_Baht   [decimal](30, 2)=0;
             DECLARE @RGL   [decimal](20, 6)=0 ;
             DECLARE @RGL_P   [decimal](20, 6)=0 ;
@@ -507,7 +507,7 @@ exports.getTransaction = (req, res, next) => {
               ,Amount_Unit [numeric](18, 4)
               ,Nav_Price [numeric](18, 4)
               ,Avg_Cost [numeric](18, 4)
-              ,Cost_Amount_Baht [numeric](18, 2)
+              ,Cost_Amount_Baht [numeric](18)
               ,RGL [decimal](20, 6)
               ,RGL_P [decimal](20, 2)
               ,Act_ExecDate Date
@@ -545,7 +545,7 @@ exports.getTransaction = (req, res, next) => {
 
 
                           select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit(@Ref_NO,@Fund_Id,@Act_ExecDate)
-                          SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
+                          SET @Cost_Amount_Baht  =  ROUND(ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0))
 
 
                           IF @TranType_Code NOT IN ('B','SI','TI')
