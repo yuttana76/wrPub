@@ -614,7 +614,6 @@ exports.getSummaryGroupByFundType = (req, res, next) => {
   DECLARE @CustID VARCHAR(20) ='${custCode}';
   DECLARE @DataDate date;
   DECLARE @MKpriceDate date;
-  DECLARE @MKpriceDate date;
 
   --Find the max date
   SELECT TOP 1  @DataDate = DataDate, @MKpriceDate =MarketPriceDate
