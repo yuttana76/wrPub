@@ -83,19 +83,16 @@ Object.keys(ifaces).forEach(function (ifname) {
 
 });
 
-// var intermediateCertificate = fs.readFileSync('intermediate.pem', 'utf8');
-// https.createServer({
-//     key: privateKey,
-//     cert: certificate,
-//     ca: [ intermediateCertificate ]
-// }, app).listen(port);
 
-// ************************************** HTTPS
-const option = {
-  key: fs.readFileSync(__dirname+'/ca/key.pem'),
-  cert: fs.readFileSync(__dirname+'/ca/cert.pem'),
-    passphrase: 'mpam@2019'
+//self-signed SSL certificate
+//https://www.kevinleary.net/self-signed-trusted-certificates-node-js-express-js/
+var option = {
+  key: fs.readFileSync(__dirname+'/ca/localhost.key' ),
+  cert: fs.readFileSync(__dirname+'/ca/localhost.cert' ),
+  requestCert: false,
+  rejectUnauthorized: false
 };
+
 var server = https.createServer(option, app)
 .listen(port,function () {
   console.log("Listening on port https://localhost:%s", server.address().port);
