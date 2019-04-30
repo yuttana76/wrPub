@@ -34,6 +34,9 @@ const utilityRoutes = require('./routes/utility');
 // const workFlowRoutes = require('./routes/workFlow');
 // const mailRoutes = require('./routes/mail');
 const app = express();
+var cors = require('cors')
+app.use(cors())
+
 app.use(helmet());
 app.use(compression())
 app.use(bodyParser.json());
