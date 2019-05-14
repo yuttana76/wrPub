@@ -57,7 +57,7 @@ app.set("port", port);
 
 
 //HTTPS
-console.log('DIR>' + __dirname);
+// console.log('DIR>' + __dirname);
 // ************************************** GET IP address
 var os = require('os');
 var ifaces = os.networkInterfaces();
@@ -86,13 +86,26 @@ Object.keys(ifaces).forEach(function (ifname) {
 
 //self-signed SSL certificate
 //https://www.kevinleary.net/self-signed-trusted-certificates-node-js-express-js/
-var option = {
-  key: fs.readFileSync(__dirname+'/ca/localhost.key' ),
-  cert: fs.readFileSync(__dirname+'/ca/localhost.cert' ),
-  requestCert: false,
-  rejectUnauthorized: false
-};
+// var option = {
+//   key: fs.readFileSync(__dirname+'/ca/localhost.key' ),
+//   cert: fs.readFileSync(__dirname+'/ca/localhost.cert' ),
+//   requestCert: false,
+//   rejectUnauthorized: false
+// };
 
+// var server = https.createServer(option, app)
+// .listen(port,function () {
+//   console.log("Listening on port https://localhost:%s", server.address().port);
+// })
+
+
+//wr.co.th
+// ************************************** HTTPS
+const option = {
+  key: fs.readFileSync(__dirname+'/ca/wr_privatekey.pem'),
+  cert: fs.readFileSync(__dirname+'/ca/wr_publiccert.pem'),
+    passphrase: 'CVdfer34!@'
+};
 var server = https.createServer(option, app)
 .listen(port,function () {
   console.log("Listening on port https://localhost:%s", server.address().port);
