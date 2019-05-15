@@ -621,7 +621,7 @@ exports.getSummaryGroupByFundType = (req, res, next) => {
   WHERE CustID= @CustID
   ORDER BY DataDate DESC;
 
-  SELECT @MKpriceDate AS DataDate ,a.* , a.TOTAL_COST-a.AVG_COST AS UN_GL,ROUND(((a.TOTAL_COST-a.AVG_COST)/a.AVG_COST)*100,2)  AS UN_GL_P
+  SELECT @DataDate AS DataDate ,a.* , a.TOTAL_COST-a.AVG_COST AS UN_GL,ROUND(((a.TOTAL_COST-a.AVG_COST)/a.AVG_COST)*100,2)  AS UN_GL_P
   FROM (
   SELECT b.FGroup_Code AS FUND_TYPE,SUM(AvgCost) AS AVG_COST,SUM(MarketValue) AS TOTAL_COST
     FROM [IT_CustPortValueEndDay] a
