@@ -545,7 +545,7 @@ exports.getTransaction = (req, res, next) => {
 
 
                           select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit(@Ref_NO,@Fund_Id,@Act_ExecDate)
-                          SET @Cost_Amount_Baht  =  ROUND(ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0))
+                          SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
 
 
                           IF @TranType_Code NOT IN ('B','SI','TI')
