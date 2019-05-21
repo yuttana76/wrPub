@@ -485,7 +485,7 @@ exports.getTransaction = (req, res, next) => {
             DECLARE @SUM_Amount_Baht   [decimal](18, 2)=0;
             DECLARE @Amount_Unit   [decimal](18, 4)=0;
             DECLARE @Nav_Price [numeric](18, 4);
-            DECLARE @Cost_Amount_Baht   [decimal](18)=0;
+            DECLARE @Cost_Amount_Baht   [numeric](18, 4);
             DECLARE @SUM_Cost_Amount_Baht   [decimal](30, 2)=0;
             DECLARE @RGL   [decimal](20, 6)=0 ;
             DECLARE @RGL_P   [decimal](20, 6)=0 ;
@@ -507,7 +507,7 @@ exports.getTransaction = (req, res, next) => {
               ,Amount_Unit [numeric](18, 4)
               ,Nav_Price [numeric](18, 4)
               ,Avg_Cost [numeric](18, 4)
-              ,Cost_Amount_Baht [numeric](18)
+              ,Cost_Amount_Baht [numeric](18,4)
               ,RGL [decimal](20, 6)
               ,RGL_P [decimal](20, 2)
               ,Act_ExecDate Date
