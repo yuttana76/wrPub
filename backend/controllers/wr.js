@@ -550,10 +550,12 @@ exports.getTransaction = (req, res, next) => {
                       WHILE @@FETCH_STATUS = 0
                       BEGIN
 
-
-                          select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit2(@Ref_NO,@Seq_No,@Fund_Id,@Act_ExecDate)
-                          SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
-
+                          if @Avg_Cost <= 0
+                          BEGIN
+                            select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit2(@Ref_NO,@Seq_No,@Fund_Id,@Act_ExecDate)
+                            -- select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit(@Ref_NO,@Fund_Id,@Act_ExecDate)
+                            SET @Cost_Amount_Baht  =  ROUND(ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0),2)
+                          END
 
                           IF @TranType_Code NOT IN ('B','SI','TI')
                           BEGIN
