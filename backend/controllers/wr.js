@@ -369,7 +369,7 @@ OPEN MFTS_Transaction_cursor
         WHILE @@FETCH_STATUS = 0
         BEGIN
 
-              select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit(@Ref_NO,@Fund_Id,@Act_ExecDate)
+              select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit2(@Ref_NO,@Seq_No,@Fund_Id,@Act_ExecDate)
               SET @Cost_Amount_Baht  =  ROUND(@Amount_Unit * @Avg_Cost,2)
 
             IF ISNULL(@RGL,0) = 0
@@ -544,7 +544,7 @@ exports.getTransaction = (req, res, next) => {
                       BEGIN
 
 
-                          select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit(@Ref_NO,@Fund_Id,@Act_ExecDate)
+                          select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit2(@Ref_NO,@Seq_No,@Fund_Id,@Act_ExecDate)
                           SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
 
 
@@ -1158,7 +1158,7 @@ DECLARE @toDate date = '${toDate}';
 
             WHILE @@FETCH_STATUS = 0
             BEGIN
-                select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit(@Ref_NO,@Fund_Id,@Act_ExecDate)
+                select @Avg_Cost = AvgCostPerUnit from MIT_AverageCostPerUnit2(@Ref_NO,@Seq_No,@Fund_Id,@Act_ExecDate)
                 SET @Cost_Amount_Baht  =  ISNULL(@Amount_Unit,0)  * ISNULL(@Avg_Cost,0)
 
                 -- SUM 1
